@@ -6,27 +6,16 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "audiohashes")
+@Document(collection = "fingerPrints")
 public class AudioHash {
 
     @Id
-    private String id; // Mongo document ID
+    private String id; // MongoDB document ID
 
-    // Maps fingerprint hash → list of occurrences
-    private Map<Long, List<Occurrence>> hashMap = new HashMap<>();
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Occurrence {
-        private Long songId;
-        private Double t1;
-    }
+    private Long hash;      // fingerprint
+    private Long songId;    // song this fingerprint belongs to
+    private Double t1;      // time offset
 }

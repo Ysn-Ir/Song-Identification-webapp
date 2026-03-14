@@ -28,7 +28,6 @@ public class FileService {
             }
 
             // 3. Create the full path to the specific file we are saving
-            // (e.g., ./uploads/my-image.png)
             Path filePath = uploadPath.resolve(file.getOriginalFilename());
 
             // 4. Save the file! (REPLACE_EXISTING overwrites a file if it has the same name)

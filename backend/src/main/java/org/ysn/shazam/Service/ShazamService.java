@@ -19,7 +19,10 @@ public class ShazamService {
             String line;
 
             while ((line = reader.readLine()) != null) {
-                result.append(line).append("/n");
+                if (result.length() > 0) {
+                    result.append("\n");
+                }
+                result.append(line);
             }
 
             process.waitFor();

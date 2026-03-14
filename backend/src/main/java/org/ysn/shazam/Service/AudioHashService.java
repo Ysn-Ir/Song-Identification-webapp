@@ -30,27 +30,24 @@ public class AudioHashService {
                 new TypeReference<List<HashEntryDTO>>() {}
         );
 
-        // Load or create AudioHash document (for simplicity, one document)
-        AudioHash db = repository.findAll().stream().findFirst().orElse(new AudioHash());
-
+        List<AudioHash> audioHashes = new ArrayList<>();
         for (HashEntryDTO entry : entries) {
-            long hash = entry.getHash();
-            double t1 = entry.getT1();
-
-            db.getHashMap()
-                    .computeIfAbsent(hash, k -> new ArrayList<>())
-                    .add(new AudioHash.Occurrence(songId, t1));
+            audioHashes.add(new AudioHash(null, entry.getHash(), songId, entry.getT1()));
         }
 
+
         // Save updated database
-        repository.save(db);
+        repository.saveAll(audioHashes);
     }
 
+    public List<HashEntryDTO> parseHashJson(String hashesJson) throws Exception {
+        return objectMapper.readValue(hashesJson, new TypeReference<List<HashEntryDTO>>() {});
+    }
     // DTO for parsing JSON
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    private static class HashEntryDTO {
+    public static class HashEntryDTO {
         private Long hash;
         private Double t1;
     }
