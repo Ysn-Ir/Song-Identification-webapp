@@ -30,4 +30,5 @@ public class ShazamService {
             return e.getMessage();
         }
     }
+
 }

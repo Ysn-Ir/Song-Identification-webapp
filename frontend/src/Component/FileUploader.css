@@ -1,0 +1,89 @@
+/* FileUploader.css */
+.uploader-container {
+  max-width: 400px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border: 2px dashed #a0aec0;
+  border-radius: 8px;
+  text-align: center;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  background-color: #f7fafc;
+  color: #2d3748;
+}
+
+.file-input {
+  margin-bottom: 1rem;
+}
+
+.file-details {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  text-align: left;
+}
+
+.file-details p {
+  margin: 0.25rem 0;
+  font-size: 0.875rem;
+  color: #4a5568;
+}
+
+.upload-button {
+  background-color: #3182ce;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.upload-button:hover {
+  background-color: #2b6cb0;
+}
+
+.upload-button:disabled {
+  background-color: #a0aec0;
+  cursor: not-allowed;
+}
+
+/* Progress Bar Styling */
+.progress-container {
+  width: 100%;
+  background-color: #e2e8f0;
+  border-radius: 999px;
+  margin-top: 1rem;
+  height: 8px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #3182ce;
+  transition: width 0.3s ease;
+}
+
+/* Status Messages */
+.status-message {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.success {
+  color: #38a169;
+}
+.error {
+  color: #e53e3e;
+}
+.uploading {
+  color: #3182ce;
+}
