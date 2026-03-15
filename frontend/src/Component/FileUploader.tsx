@@ -6,13 +6,14 @@ import "./FileUploader.css";
 type UploadStatus = "Idle" | "uploading" | "success" | "error";
 
 export default function FileUploader() {
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[] | null>(null); // Renamed to 'files' for clarity
   const [status, setStatus] = useState<UploadStatus>("Idle");
   const [progress, setProgress] = useState(0);
 
   function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     if (e.target.files) {
-      setFile(e.target.files[0]);
+      const selectedFiles = Array.from(e.target.files);
+      setFiles(selectedFiles);
       // Reset status when a new file is chosen
       setStatus("Idle");
       setProgress(0);
@@ -20,80 +21,116 @@ export default function FileUploader() {
   }
 
   async function handleUploading() {
-    if (!file) return;
+    if (!files || files.length === 0) {
+      console.log("No files selected!");
+      return;
+    }
 
     setStatus("uploading");
     setProgress(0);
 
-    const Formdata = new FormData();
-    Formdata.append("file", file);
+    const formData = new FormData();
+
+    // Loop through ALL selected files and append them
+    files.forEach((f) => {
+      formData.append("file", f);
+    });
+
+    // Append the command
+    formData.append("command", "getFingerprint");
 
     try {
-      await axios.post("http://localhost:8080/api/upload", Formdata, {
-        headers: {
-          "Content-Type": "multipart/form-data",
+      console.log(`Sending ${files.length} files to backend...`);
+
+      const response = await axios.post(
+        "http://localhost:8080/api/file",
+        formData,
+        {
+          onUploadProgress: (progressEvent) => {
+            const prog = progressEvent.total
+              ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
+              : 0;
+            setProgress(prog);
+          },
         },
-        onUploadProgress: (progressEvent) => {
-          const prog = progressEvent.total
-            ? Math.round((progressEvent.loaded * 100) / progressEvent.total)
-            : 0;
-          setProgress(prog);
-        },
-      });
+      );
+
+      console.log("Backend Response:", response.data);
       setStatus("success");
       setProgress(100);
     } catch (err) {
       setStatus("error");
       setProgress(0);
-      console.log("Error", err);
+      console.error("Upload failed!", err);
     }
   }
-
   return (
     <div className="uploader-container">
-      <h3>Upload a File</h3>
+      <h3>Add to Database</h3>
 
-      <input type="file" onChange={handleFileChange} className="file-input" />
+      {/* The Stylish Dropzone */}
+      <label htmlFor="file-upload" className="dropzone">
+        <span className="dropzone-icon">📁</span>
+        <span className="dropzone-text">Click to select audio files</span>
+      </label>
 
-      {file && (
+      {/* The Hidden Input */}
+      <input
+        id="file-upload"
+        type="file"
+        multiple
+        onChange={handleFileChange}
+        className="hidden-input"
+        accept="audio/*"
+      />
+
+      {files && files.length > 0 && (
         <div className="file-details">
-          <p>
-            <strong>Name:</strong> {file.name}
-          </p>
-          <p>
-            <strong>Size:</strong> {(file.size / 1024 / 1024).toFixed(2)} MB
-          </p>
-          <p>
-            <strong>Type:</strong> {file.type || "Unknown"}
-          </p>
+          <ul>
+            {files.map((file, index) => (
+              <li key={index}>
+                <span className="file-name">🎵 {file.name}</span>
+                <span className="file-size">
+                  {(file.size / 1024 / 1024).toFixed(2)} MB
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       )}
 
-      {/* Progress Bar (Only visible during and after upload) */}
       {status !== "Idle" && status !== "error" && (
         <div className="progress-container">
-          <div className="progress-bar" style={{ width: `${progress}%` }}></div>
+          <div
+            className="progress-bar"
+            style={{ width: `${progress}%`, backgroundColor: "var(--primary)" }}
+          ></div>
         </div>
       )}
 
-      {/* Upload Button */}
-      {file && status !== "uploading" && status !== "success" && (
-        <button className="upload-button" onClick={handleUploading}>
-          Upload File
-        </button>
-      )}
+      {files &&
+        files.length > 0 &&
+        status !== "uploading" &&
+        status !== "success" && (
+          <button className="upload-button" onClick={handleUploading}>
+            Index {files.length > 1 ? `${files.length} Files` : "File"}
+          </button>
+        )}
 
-      {/* Status Messages */}
       {status === "uploading" && (
-        <p className="status-message uploading">Uploading... {progress}%</p>
+        <p className="status-message uploading">
+          Uploading and indexing... {progress}%
+        </p>
       )}
       {status === "success" && (
         <p className="status-message success">
-          File has been uploaded successfully!
+          All files added to database! 🎉
         </p>
       )}
       {status === "error" && (
-        <p className="status-message error">Upload error. Please try again.</p>
+        <p className="status-message error">
+          Upload failed. Check your server connection.
+        </p>
       )}
     </div>
   );
