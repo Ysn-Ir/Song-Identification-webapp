@@ -1,69 +1,124 @@
 package org.ysn.shazam.Controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.ysn.shazam.Repository.AudioHashRepository;
+import org.ysn.shazam.Repository.SongRepository;
 import org.ysn.shazam.Service.AudioHashService;
 import org.ysn.shazam.Service.CounterService;
 import org.ysn.shazam.Service.ShazamService;
-import org.ysn.shazam.Service.UserService;
 import org.ysn.shazam.model.AudioHash;
-import org.ysn.shazam.model.file;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import org.ysn.shazam.model.Song;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("api")
+@RequestMapping("/api")
+@CrossOrigin(origins = "http://localhost:5173")
 public class ShazamController {
+
     @Autowired
     private ShazamService shazamService;
     @Autowired
     private AudioHashService audioHashService;
     @Autowired
-    private AudioHashRepository  audioHashRepository;
+    private AudioHashRepository audioHashRepository;
     @Autowired
     private CounterService counterService;
+    @Autowired
+    private SongRepository songRepository;
 
+    @Value("${file.upload-dir}")
+    private String uploadDir;
+
+    // ==========================================
+    // TASK 1: UPLOAD & STORE
+    // ==========================================
     @PostMapping("/file")
-    public Integer testexec(@RequestBody file f) {
-        String hash = shazamService.runProgram(f.getFilepath().toString(), f.getCommand().toString());
+    public ResponseEntity<?> testexec(@RequestParam("file") MultipartFile[] files,
+                                      @RequestParam(value = "command", defaultValue = "getFingerprint") String command) throws Exception {
 
-        // Generate a new songId
-        long songId = counterService.getNextSongId();
+        List<Integer> hashLengths = new ArrayList<>();
 
-        audioHashService.addHashesToDatabase(hash, songId);
-        return hash.length();
+        Path uploadPath = Paths.get(uploadDir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+
+        // Loop through every file sent by React
+        for (MultipartFile file : files) {
+
+            // 1. Save this specific file
+            Path filePath = uploadPath.resolve(file.getOriginalFilename());
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            String savedFilePath = filePath.normalize().toAbsolutePath().toString();
+
+            // 2. Run Shazam for this specific file
+            String hash = shazamService.runProgram(savedFilePath, command);
+
+            if (hash == null || hash.trim().isEmpty()) {
+                throw new RuntimeException("C++ PROGRAM FAILED! File: [" + savedFilePath + "]");
+            }
+
+            // 3. Save Song and Hashes to DB
+            long songId = counterService.getNextSongId();
+            songRepository.save(new Song(songId, file.getOriginalFilename(), "Artist"));
+            audioHashService.addHashesToDatabase(hash, songId);
+
+            hashLengths.add(hash.length());
+        }
+
+        // Return a list of all the hash lengths processed
+        return ResponseEntity.ok("Successfully processed " + files.length + " files. Hash lengths: " + hashLengths);
     }
+
+    // ==========================================
+    // TASK 2: UPLOAD & RECOGNIZE
+    // ==========================================
     @PostMapping("/recognize")
-    public Long recognizeFileOptimized(@RequestBody file f) throws Exception {
+    public String recognizeFileOptimized(@RequestParam("file") MultipartFile file,
+                                         @RequestParam(value = "command", defaultValue = "") String command) throws Exception {
 
-        // 1️⃣ Generate fingerprints JSON
-        String hashJson = shazamService.runProgram(f.getFilepath().toString(), f.getCommand().toString());
+        // 1. YOUR EXACT FILE SAVING LOGIC
+        Path uploadPath = Paths.get(uploadDir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+        Path filePath = uploadPath.resolve(file.getOriginalFilename());
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        String savedFilePath = filePath.normalize().toAbsolutePath().toString();
 
-        // 2️⃣ Parse JSON into entries
+        // 2. YOUR EXACT RECOGNITION LOGIC
+        // Generate fingerprints JSON
+        String hashJson = shazamService.runProgram(savedFilePath, command);
+
+        // Parse JSON into entries
         List<AudioHashService.HashEntryDTO> entries = audioHashService.parseHashJson(hashJson);
 
-        // 3️⃣ Collect all unique hashes
+        // Collect all unique hashes
         Set<Long> uniqueHashes = entries.stream()
                 .map(AudioHashService.HashEntryDTO::getHash)
                 .collect(Collectors.toSet());
 
-        // 4️⃣ Bulk fetch all matching AudioHash documents from the repository
+        // Bulk fetch all matching AudioHash documents from the repository
         List<AudioHash> allMatches = audioHashRepository.findByHashIn(uniqueHashes);
 
-        // 5️⃣ Map hash -> list of occurrences
+        // Map hash -> list of occurrences
         Map<Long, List<AudioHash>> hashToOccurrences = new HashMap<>();
         for (AudioHash match : allMatches) {
             hashToOccurrences.computeIfAbsent(match.getHash(), k -> new ArrayList<>())
                     .add(match);
         }
 
-        // 6️⃣ Recognition logic
+        // Recognition logic
         Map<Long, Map<Integer, Integer>> matchScores = new HashMap<>();
         long bestSongId = -1;
         int highestScore = 0;
@@ -91,10 +146,14 @@ public class ShazamController {
             }
         }
 
-        System.out.println(bestSongId != -1
-                ? "Found song_ID: " + bestSongId + " (Confidence: " + highestScore + ")"
-                : "No match found in the database.");
+        String song = songRepository.findById(bestSongId).toString();
+        String response = bestSongId != -1
+                ? "Found song_ID: " + bestSongId + " which is : " + song + " (Confidence: " + highestScore + ")"
+                : "No match found in the database.";
 
-        return bestSongId;
+        // (Optional) Delete the file after recognizing so your hard drive doesn't fill up
+        Files.deleteIfExists(filePath);
+
+        return response;
     }
 }

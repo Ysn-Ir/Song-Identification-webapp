@@ -6,7 +6,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.ysn.shazam.Repository.SongRepository;
 import org.ysn.shazam.Service.FileService;
+import org.ysn.shazam.model.Song;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -23,14 +25,24 @@ public class FileUploadController {
 
     @Autowired
     FileService fileService;
-    // This grabs the folder path we just set in application.properties
+    @Autowired
+    SongRepository songRepository;
     @Value("${file.upload-dir}")
     private String uploadDir;
 
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
-        return fileService.saveFile(file, uploadDir);
+    public ResponseEntity<String> uploadFiles(@RequestParam("file") MultipartFile[] files) {
+        try {
+            for (MultipartFile file : files) {
+                // Assuming this saves the file and we ignore its individual return for now
+                fileService.saveFile(file, uploadDir);
+
+            }
+            return ResponseEntity.ok("All files uploaded successfully!");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading files");
+        }
     }
 
 }

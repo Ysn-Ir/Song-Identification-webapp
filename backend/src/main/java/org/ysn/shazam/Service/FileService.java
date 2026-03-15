@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.ysn.shazam.Repository.SongRepository;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,6 +14,12 @@ import java.nio.file.StandardCopyOption;
 
 @Service
 public class FileService {
+    private final SongRepository songRepository;
+
+    public FileService(SongRepository songRepository) {
+        this.songRepository = songRepository;
+    }
+
     public ResponseEntity<String> saveFile(MultipartFile file , String uploadDir) {
         try {
             if (file.isEmpty()) {
@@ -32,7 +39,6 @@ public class FileService {
 
             // 4. Save the file! (REPLACE_EXISTING overwrites a file if it has the same name)
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
             return ResponseEntity.ok("File saved successfully to: " + filePath.toAbsolutePath());
 
         } catch (IOException e) {
