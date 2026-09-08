@@ -5,7 +5,11 @@ set -e
 if [ -z "$MONGODB_URI" ] || [[ "$MONGODB_URI" == *"localhost"* ]] || [[ "$MONGODB_URI" == *"127.0.0.1"* ]]; then
     echo ">> Starting internal MongoDB daemon (127.0.0.1:27017)..."
     mkdir -p /data/db /var/log
-    mongod --fork --logpath /var/log/mongod.log --bind_ip 127.0.0.1 --wiredTigerCacheSizeGB 0.1
+    if ! mongod --fork --logpath /var/log/mongod.log --bind_ip 127.0.0.1 --wiredTigerCacheSizeGB 0.25; then
+        echo ">> mongod failed to start. Printing log:"
+        cat /var/log/mongod.log
+        exit 1
+    fi
     export MONGODB_URI="mongodb://127.0.0.1:27017/shazamdb"
     echo ">> Internal MongoDB daemon started successfully."
 else
