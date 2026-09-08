@@ -278,7 +278,19 @@ export default function FileUploader() {
                   <span className="master-id mono">#{s.id}</span>
                   <div>
                     <span className="master-name">{s.name}</span>
-                    <span className="master-artist">{s.artist}</span>
+                    <span className="master-artist">{s.artist || "Unknown Artist"}</span>
+                    {s.link && (
+                      <a
+                        href={s.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="master-link mono"
+                        title={s.link}
+                        style={{ display: "inline-block", fontSize: "0.7rem", color: "var(--shazam-cyan)", marginTop: "2px" }}
+                      >
+                        ↗ Open Source Link
+                      </a>
+                    )}
                   </div>
                 </div>
                 <span className="master-hashes mono">
@@ -500,18 +512,34 @@ export default function FileUploader() {
                   <button
                     type="button"
                     className="btn-preset mono"
-                    onClick={() => setYoutubeUrlsText("https://www.youtube.com/watch?v=Rb0UmrCXxVA")}
+                    onClick={() => setYoutubeUrlsText("https://www.youtube.com/watch?v=9E6b3swbnWg")}
                     disabled={indexingStatus === "processing"}
                   >
-                    Mozart Best
+                    Chopin Nocturne
                   </button>
                   <button
                     type="button"
                     className="btn-preset mono"
-                    onClick={() => setYoutubeUrlsText("ytsearch2:chopin nocturne")}
+                    onClick={() => setYoutubeUrlsText("https://www.youtube.com/watch?v=jv2WJMVPQi8")}
                     disabled={indexingStatus === "processing"}
                   >
-                    Chopin (2)
+                    Beethoven 5th
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-preset mono"
+                    onClick={() => setYoutubeUrlsText("https://www.youtube.com/watch?v=u4_V98ZpBqA")}
+                    disabled={indexingStatus === "processing"}
+                  >
+                    Kevin MacLeod
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-preset mono"
+                    onClick={() => setYoutubeUrlsText("https://www.youtube.com/watch?v=4xDzrJKXOOY")}
+                    disabled={indexingStatus === "processing"}
+                  >
+                    Lofi Beats
                   </button>
                 </div>
               </div>

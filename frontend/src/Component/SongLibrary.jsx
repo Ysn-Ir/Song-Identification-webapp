@@ -189,7 +189,26 @@ export default function SongLibrary() {
                       <div className="track-waveform-glyph">
                         <span></span><span></span><span></span><span></span><span></span>
                       </div>
-                      <span className="track-title-text">{song.name}</span>
+                      <div className="track-title-block">
+                        <span className="track-title-text">{song.name}</span>
+                        {song.link && (
+                          <a
+                            href={song.link}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="track-source-url mono"
+                            title={song.link}
+                          >
+                            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                            </svg>
+                            {song.link.replace(/^https?:\/\/(www\.)?/, "").length > 32
+                              ? song.link.replace(/^https?:\/\/(www\.)?/, "").substring(0, 32) + "..."
+                              : song.link.replace(/^https?:\/\/(www\.)?/, "")}
+                          </a>
+                        )}
+                      </div>
                     </div>
                   </td>
                   <td className="row-artist">{song.artist || "Unknown Artist"}</td>
@@ -200,6 +219,22 @@ export default function SongLibrary() {
                   </td>
                   <td className="row-actions">
                     <div className="action-button-group">
+                      {song.link && (
+                        <a
+                          href={song.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn-icon-link source-direct"
+                          title="Open direct audio source link"
+                        >
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                            <polyline points="15 3 21 3 21 9"/>
+                            <line x1="10" y1="14" x2="21" y2="3"/>
+                          </svg>
+                        </a>
+                      )}
+
                       <a
                         href={`https://open.spotify.com/search/${encodeURIComponent(
                           `${song.artist} ${song.name}`
@@ -215,13 +250,17 @@ export default function SongLibrary() {
                       </a>
 
                       <a
-                        href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
-                          `${song.artist} ${song.name}`
-                        )}`}
+                        href={
+                          song.link && song.link.includes("youtube")
+                            ? song.link
+                            : `https://www.youtube.com/results?search_query=${encodeURIComponent(
+                                `${song.artist} ${song.name}`
+                              )}`
+                        }
                         target="_blank"
                         rel="noreferrer"
                         className="btn-icon-link youtube"
-                        title="Search on YouTube"
+                        title={song.link && song.link.includes("youtube") ? "Watch on YouTube" : "Search on YouTube"}
                       >
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
                           <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>

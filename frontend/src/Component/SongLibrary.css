@@ -173,6 +173,28 @@
   gap: 12px;
 }
 
+.track-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.track-source-url {
+  font-size: 0.68rem;
+  color: var(--shazam-cyan);
+  opacity: 0.85;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.track-source-url:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
 .track-waveform-glyph {
   display: flex;
   align-items: center;
@@ -242,6 +264,12 @@
   background: rgba(239, 68, 68, 0.15);
   border-color: #ef4444;
   color: #f87171;
+}
+
+.btn-icon-link.source-direct:hover {
+  background: rgba(0, 229, 255, 0.15);
+  border-color: var(--shazam-cyan);
+  color: var(--shazam-cyan);
 }
 
 .btn-delete {
