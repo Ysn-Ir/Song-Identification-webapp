@@ -69,9 +69,9 @@ export class WavAudioRecorder {
   async start() {
     this.stream = await navigator.mediaDevices.getUserMedia({
       audio: {
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false,
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
       },
     });
 
@@ -135,6 +135,20 @@ export class WavAudioRecorder {
     for (const buf of this.recordedBuffers) {
       merged.set(buf, offset);
       offset += buf.length;
+    }
+
+    // Studio-grade peak normalization: boost quiet microphone captures to reference full scale
+    let maxAmp = 0;
+    for (let i = 0; i < merged.length; i++) {
+      const abs = Math.abs(merged[i]);
+      if (abs > maxAmp) maxAmp = abs;
+    }
+
+    if (maxAmp > 0.001) {
+      const gain = 0.95 / maxAmp;
+      for (let i = 0; i < merged.length; i++) {
+        merged[i] = merged[i] * gain;
+      }
     }
 
     const wavBuffer = encodeWAV(merged, sampleRate);

@@ -154,7 +154,7 @@ public class ShazamController {
                 logService.log("FFTW3", "Executing C++ FFTW3 constellation extraction on [" + songTitle + "]...");
                 long startTime = System.currentTimeMillis();
 
-                String hashJson = shazamService.runProgram(savedFilePath, command);
+                String hashJson = shazamService.runProgramWithNormalization(savedFilePath, command);
                 if (hashJson == null || hashJson.trim().isEmpty()) {
                     throw new RuntimeException("C++ analyzer produced empty fingerprints for: " + originalName);
                 }
@@ -234,8 +234,8 @@ public class ShazamController {
             Files.copy(file.getInputStream(), tempFile, StandardCopyOption.REPLACE_EXISTING);
             String savedFilePath = tempFile.normalize().toAbsolutePath().toString();
 
-            // Run Shazam C++ binary
-            String hashJson = shazamService.runProgram(savedFilePath, command);
+            // Run Shazam C++ binary with automatic audio normalization & format transcoding
+            String hashJson = shazamService.runProgramWithNormalization(savedFilePath, command);
             if (hashJson == null || hashJson.trim().isEmpty()) {
                 return ResponseEntity.ok(new RecognitionResponseDTO(false, null, 0, "No audio features could be extracted from this sample."));
             }
@@ -258,10 +258,8 @@ public class ShazamController {
                 hashToOccurrences.computeIfAbsent(match.getHash(), k -> new ArrayList<>()).add(match);
             }
 
-            // Time-coherency scoring algorithm
+            // Time-coherency scoring algorithm with jitter smoothing (+-1 frame window)
             Map<Long, Map<Integer, Integer>> matchScores = new HashMap<>();
-            long bestSongId = -1;
-            int highestScore = 0;
 
             for (AudioHashService.HashEntryDTO entry : entries) {
                 long hash = entry.getHash();
@@ -275,11 +273,27 @@ public class ShazamController {
 
                     matchScores.computeIfAbsent(songId, k -> new HashMap<>());
                     Map<Integer, Integer> offsetMap = matchScores.get(songId);
-                    int newScore = offsetMap.getOrDefault(offset, 0) + 1;
-                    offsetMap.put(offset, newScore);
+                    offsetMap.put(offset, offsetMap.getOrDefault(offset, 0) + 1);
+                }
+            }
 
-                    if (newScore > highestScore) {
-                        highestScore = newScore;
+            // Group adjacent time offsets (+-1 frame) to handle STFT window boundary jitter in ambient mic input
+            long bestSongId = -1;
+            int highestScore = 0;
+
+            for (Map.Entry<Long, Map<Integer, Integer>> songEntry : matchScores.entrySet()) {
+                long songId = songEntry.getKey();
+                Map<Integer, Integer> offsetMap = songEntry.getValue();
+
+                for (Map.Entry<Integer, Integer> offsetEntry : offsetMap.entrySet()) {
+                    int centerOffset = offsetEntry.getKey();
+                    int clusterScore = 0;
+                    for (int delta = -1; delta <= 1; delta++) {
+                        clusterScore += offsetMap.getOrDefault(centerOffset + delta, 0);
+                    }
+
+                    if (clusterScore > highestScore) {
+                        highestScore = clusterScore;
                         bestSongId = songId;
                     }
                 }

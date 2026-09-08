@@ -245,12 +245,12 @@ export default function SongRecognizer() {
           className="btn btn-demo"
           onClick={loadAndIdentifyDemoTrack}
           disabled={status === "analyzing" || isListening || isLoadingDemo}
-          title="Instantly tests the engine with the bundled reference audio"
+          title="Instantly tests the engine with the bundled reference audio (Starboy - The Weeknd)"
         >
           <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
             <polygon points="5 3 19 12 5 21 5 3"/>
           </svg>
-          {isLoadingDemo ? "Loading Demo..." : "Run Test with Sample Track"}
+          {isLoadingDemo ? "Loading Demo..." : "Run Test (Starboy Demo)"}
         </button>
       </div>
 
@@ -516,7 +516,7 @@ export default function SongRecognizer() {
                     <div className="idle-banner">
                       <h2>Click Center Console to Identify</h2>
                       <p className="idle-prompt">
-                        Acoustic signature is captured in uncompressed 16-bit PCM WAV and sent to C++ FFTW3 engine.
+                        Auto-normalized 16kHz PCM with AGC enabled. Play 5–8 seconds of any cataloged song near your mic.
                       </p>
                     </div>
                   )}
