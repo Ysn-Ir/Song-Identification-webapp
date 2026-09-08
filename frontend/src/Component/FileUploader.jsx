@@ -144,53 +144,7 @@ export default function FileUploader() {
     }
   };
 
-  // Studio Reference Master Banks (Calibrated Acoustic Benchmarks)
-  const MASTER_BANKS = [
-    {
-      id: "bank_01",
-      code: "BANK 01",
-      category: "SYNTHWAVE & TRANSIENT DYNAMICS",
-      subtitle: "Sharp transient percussion, wide stereo chorus & analog synth lead dynamics",
-      specs: "16-BIT / 16kHz MONO • 4 REF STEMS",
-      tracksSummary: ["Mr.Kitty - After Dark", "The Weeknd - Starboy", "HOME - Resonance", "Crystal Castles - Kerosene"],
-      accent: "#38bdf8",
-      urls: [
-        "https://www.youtube.com/watch?v=sVx1mJDeUjY # Mr.Kitty - After Dark",
-        "https://www.youtube.com/watch?v=34Na4j8AVgA # The Weeknd - Starboy ft. Daft Punk",
-        "https://www.youtube.com/watch?v=8GW6sLrK40k # HOME - Resonance",
-        "https://www.youtube.com/watch?v=NvRUpkTrTGk # Crystal Castles - Kerosene"
-      ]
-    },
-    {
-      id: "bank_02",
-      code: "BANK 02",
-      category: "VOCAL TIMBRE & ACOUSTIC RANGE",
-      subtitle: "Complex vocal presence, acoustic guitar harmonics & full-spectrum dynamic orchestrations",
-      specs: "16-BIT / 16kHz MONO • 4 REF STEMS",
-      tracksSummary: ["OneRepublic - Counting Stars", "Stromae - Alors on danse", "Indila - Dernière Danse", "Gotye - Somebody That I Used To Know"],
-      accent: "#34d399",
-      urls: [
-        "https://www.youtube.com/watch?v=hT_nvWreIhg # OneRepublic - Counting Stars",
-        "https://www.youtube.com/watch?v=VHoT4N43jK8 # Stromae - Alors on danse",
-        "https://www.youtube.com/watch?v=K5KAc5CoCuk # Indila - Dernière Danse",
-        "https://www.youtube.com/watch?v=8UVNT4wvIGY # Gotye - Somebody That I Used To Know"
-      ]
-    },
-    {
-      id: "bank_03",
-      code: "BANK 03",
-      category: "SUB-BASS & HARMONIC SATURATION",
-      subtitle: "Heavy 808 sub-bass, tape distortion, drift phonk transients & nocturnal lo-fi timbre",
-      specs: "16-BIT / 16kHz MONO • 3 REF STEMS",
-      tracksSummary: ["Mareux - The Perfect Girl", "Kavinsky - Nightcall", "Hensonn - Sahara"],
-      accent: "#fbbf24",
-      urls: [
-        "https://www.youtube.com/watch?v=sO_k8hXQ_8c # Mareux - The Perfect Girl",
-        "https://www.youtube.com/watch?v=MV_3Dpw-BRY # Kavinsky - Nightcall",
-        "https://www.youtube.com/watch?v=b4dKkK8Fj8c # Hensonn - Sahara"
-      ]
-    }
-  ];
+  // Stream and URL Resolution Handler
 
   const handleResolveLinks = async () => {
     const lines = youtubeUrlsText.split("\n").map((l) => l.trim()).filter(Boolean);
@@ -348,10 +302,15 @@ export default function FileUploader() {
           }}
           disabled={indexingStatus === "uploading" || indexingStatus === "processing"}
         >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="#ff0000">
-            <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-          </svg>
-          YouTube & Web Importer (yt-dlp)
+          <span className="source-icons-duo">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="#ff0000">
+              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+            </svg>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="#1db954">
+              <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+            </svg>
+          </span>
+          YouTube & Spotify
         </button>
       </div>
 
@@ -508,7 +467,7 @@ export default function FileUploader() {
                           </div>
 
                           <div className="meta-field">
-                            <label className="mono">REFERENCE URL (OPTIONAL)</label>
+                            <label className="mono">STREAM / SOURCE URL (OPTIONAL)</label>
                             <input
                               type="text"
                               value={item.link}
@@ -550,84 +509,29 @@ export default function FileUploader() {
           )}
 
           {/* =======================
-              SOURCE 2: YOUTUBE IMPORTER
+              SOURCE 2: YOUTUBE & SPOTIFY IMPORTER
              ======================= */}
           {sourceMode === "youtube" && (
             <div className="youtube-importer-deck">
               <div className="importer-instructions">
                 <div className="importer-title-row">
-                  <h3>Stream & Playlist Acoustic Ingestion</h3>
+                  <h3>Import from YouTube & Spotify</h3>
                   <div className="supported-platform-pills mono">
                     <span className="platform-pill yt">YOUTUBE</span>
-                    <span className="platform-pill ytm">YT MUSIC</span>
                     <span className="platform-pill sp">SPOTIFY</span>
+                    <span className="platform-pill ytm">YT MUSIC</span>
                     <span className="platform-pill sc">SOUNDCLOUD</span>
                   </div>
                 </div>
                 <p>
-                  High-speed audio extraction with 4-thread acceleration, automated Spotify-to-stream metadata resolution, and local 16kHz mono WAV conversion.
+                  Paste individual tracks, complete YouTube playlists, or Spotify playlists and albums.
+                  Streams are automatically downloaded, transcoded to 16kHz mono WAV, and indexed into the database.
                 </p>
-              </div>
-
-              {/* Reference Master Banks */}
-              <div className="reference-master-banks">
-                <div className="banks-rack-header">
-                  <div className="rack-title-left">
-                    <span className="rack-led-dot"></span>
-                    <span className="rack-title mono">REFERENCE MASTER BANKS // ACOUSTIC BENCHMARKS</span>
-                  </div>
-                  <span className="rack-spec-badge mono">CALIBRATED 16-BIT / 16kHz MONO</span>
-                </div>
-
-                <div className="banks-strips-rack">
-                  {MASTER_BANKS.map((bank) => (
-                    <div key={bank.id} className="master-bank-strip" style={{ "--bank-accent": bank.accent }}>
-                      <div className="bank-strip-top">
-                        <div className="bank-code-tag mono">{bank.code}</div>
-                        <div className="bank-meta">
-                          <h4 className="bank-category">{bank.category}</h4>
-                          <p className="bank-subtitle">{bank.subtitle}</p>
-                        </div>
-                        <div className="bank-spec mono">{bank.specs}</div>
-                      </div>
-
-                      <div className="bank-track-chips">
-                        {bank.tracksSummary.map((track, i) => (
-                          <span key={i} className="track-chip mono">
-                            <span className="chip-bullet">•</span> {track}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="bank-strip-actions">
-                        <button
-                          type="button"
-                          className="btn-bank-action btn-bank-load mono"
-                          onClick={() => loadCuratedPack(bank)}
-                          disabled={indexingStatus === "processing"}
-                        >
-                          [ LOAD STAGING ]
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-bank-action btn-bank-ingest mono"
-                          onClick={() => {
-                            loadCuratedPack(bank);
-                            executeYouTubeIndex(bank.urls);
-                          }}
-                          disabled={indexingStatus === "processing"}
-                        >
-                          ▶ BENCHMARK INGEST
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </div>
 
               <div className="youtube-form-group">
                 <div className="form-label-row">
-                  <label className="mono">STREAM TARGETS: PLAYLISTS, TRACKS & SPOTIFY LINKS (ONE PER LINE)</label>
+                  <label className="mono">YOUTUBE & SPOTIFY URLS OR PLAYLISTS (ONE PER LINE)</label>
                   <button
                     type="button"
                     className="btn-resolve-link mono"
@@ -635,13 +539,13 @@ export default function FileUploader() {
                     disabled={resolvingLink || indexingStatus === "processing"}
                     title="Inspect and resolve full playlist or Spotify tracklist into individual query rows"
                   >
-                    {resolvingLink ? "INSPECTING TARGET STREAM..." : "⚡ RESOLVE & EXPAND PLAYLIST / SPOTIFY"}
+                    {resolvingLink ? "INSPECTING STREAM..." : "⚡ RESOLVE & EXPAND PLAYLIST / SPOTIFY"}
                   </button>
                 </div>
                 <textarea
                   className="youtube-textarea mono"
-                  rows={5}
-                  placeholder={`# Paste single tracks, full YouTube playlists, or Spotify albums/playlists:\nhttps://www.youtube.com/playlist?list=PLrAlGoj0wZVhFvQG_B3f52l22X_Q59X3u\nhttps://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M\nhttps://www.youtube.com/watch?v=sVx1mJDeUjY # Mr.Kitty - After Dark`}
+                  rows={6}
+                  placeholder={`# Paste single songs, full YouTube playlists, or Spotify albums/playlists:\nhttps://www.youtube.com/watch?v=sVx1mJDeUjY # Mr.Kitty - After Dark\nhttps://www.youtube.com/playlist?list=PLrAlGoj0wZVhFvQG_B3f52l22X_Q59X3u\nhttps://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M`}
                   value={youtubeUrlsText}
                   onChange={(e) => setYoutubeUrlsText(e.target.value)}
                   disabled={indexingStatus === "processing"}
@@ -661,11 +565,11 @@ export default function FileUploader() {
               <div className="playlist-guide-banner">
                 <div className="guide-icon mono">ℹ</div>
                 <div className="guide-content">
-                  <div className="guide-title mono">PLAYLIST & STREAM INGESTION PROTOCOL</div>
+                  <div className="guide-title mono">YOUTUBE & SPOTIFY INGESTION PROTOCOL</div>
                   <p className="guide-desc">
                     <strong>YouTube Playlists:</strong> Paste any playlist URL (<code>playlist?list=...</code>). Set <strong>MAX TRACKS</strong> below to limit sequential processing depth.
                     <br />
-                    <strong>Spotify Playlists & Albums:</strong> Spotify streams utilize Widevine DRM encryption. Our automated bridge resolves authentic track metadata from Spotify and maps each song to verified high-fidelity YouTube audio streams for fingerprinting.
+                    <strong>Spotify Playlists & Albums:</strong> Spotify streams utilize Widevine DRM encryption. Our automated bridge resolves authentic track metadata from Spotify and maps each song to verified high-fidelity audio streams for fingerprinting.
                   </p>
                 </div>
               </div>
@@ -703,7 +607,7 @@ export default function FileUploader() {
                   className="btn btn-primary start-indexing-btn"
                   onClick={() => executeYouTubeIndex()}
                 >
-                  ⚡ Download, Transcode & Index Audio Queue
+                  ⚡ Download, Transcode & Index from YouTube / Spotify
                 </button>
               )}
             </div>
