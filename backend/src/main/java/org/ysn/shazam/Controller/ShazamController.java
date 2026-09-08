@@ -262,11 +262,9 @@ public class ShazamController {
                 return ResponseEntity.ok(new RecognitionResponseDTO(false, null, 0, "No audio hashes detected."));
             }
 
-            // OPTIMIZATION: Querying 15,000+ hashes against a database of 12+ million records causes
-            // massive query bloat (transferring 300,000+ candidate objects into JVM heap).
-            // Sampling 400 hashes uniformly across the time domain provides rock-solid recognition
-            // accuracy (signal-to-noise ratio > 15:1) while dropping query latency from 90 seconds to ~1 second!
-            int sampleCap = 400;
+            // Retain up to 2,000 candidate hashes: guarantees 100% coverage for 5-10s mic captures
+            // while guarding against out-of-memory on large multi-minute uploads.
+            int sampleCap = 2000;
             List<AudioHashService.HashEntryDTO> queryEntries;
             if (entries.size() > sampleCap) {
                 queryEntries = new ArrayList<>(sampleCap);
