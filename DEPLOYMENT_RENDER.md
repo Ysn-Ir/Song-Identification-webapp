@@ -32,28 +32,37 @@ This guide details how to deploy the entire full-stack application (React Fronte
 
 ---
 
-## Step 1: Set up a Free MongoDB Atlas Database
+## Database Options
 
+### Option 1: Built-in MongoDB (Zero Accounts, 100% Free) — Recommended
+The Docker container now includes an **internal MongoDB 7.0 server** pre-installed:
+- No external MongoDB Atlas account needed.
+- No credit card needed.
+- Render boots the database and web app together automatically in a single container.
+- If `MONGODB_URI` is left default (`mongodb://127.0.0.1:27017/shazamdb`), the container starts `mongod` locally on boot.
+
+### Option 2: Free MongoDB Atlas Cloud (For Persistent Remote Storage)
+If you want persistent cloud storage across container reboots:
 1. Go to [mongodb.com/atlas](https://www.mongodb.com/atlas) and sign in.
-2. Create a **Free Shared M0 Cluster** (choose AWS or Google Cloud in any region).
-3. Under **Database Access**, create a user (e.g. `shazamuser`) and set a secure password.
-4. Under **Network Access**, click **Add IP Address** and select **Allow Access from Anywhere** (`0.0.0.0/0`) so Render can connect.
-5. Click **Connect** -> **Drivers** -> Copy the connection string. It will look like:
-   ```
-   mongodb+srv://shazamuser:<PASSWORD>@cluster0.abcde.mongodb.net/shazamdb?retryWrites=true&w=majority
-   ```
-   *(Replace `<PASSWORD>` with your database user password and specify `/shazamdb` as the database name)*.
+2. Select the **M0 Shared Free Tier** (512MB storage, 100% free forever, no credit card required).
+3. Under **Security ➔ Database Access**, add a user with password.
+4. Under **Security ➔ Network Access**, add `0.0.0.0/0` (Allow access from anywhere).
+5. Copy your connection string (`mongodb+srv://...`) and set it as the `MONGODB_URI` environment variable.
 
 ---
 
-## Step 2: Push Code to GitHub
+## How to Deploy to Render (3 Clicks)
 
-Make sure your latest code is pushed to your GitHub repository:
-```bash
-git add .
-git commit -m "Add Dockerfile, Render blueprint, and enhanced studio UI"
-git push origin main
-```
+1. Push latest code to GitHub:
+   ```bash
+   git add .
+   git commit -m "Add internal MongoDB and zero-config deployment"
+   git push origin main
+   ```
+2. Go to your [Render Dashboard](https://dashboard.render.com).
+3. Click **New +** ➔ **Blueprint** (or **Web Service**).
+4. Select your repository: **`Song-Identification-webapp`**.
+5. Click **Apply** (Render reads `render.yaml` and deploys automatically). That's it!
 
 ---
 

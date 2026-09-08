@@ -8,7 +8,7 @@ services:
     autoDeploy: true
     envVars:
       - key: MONGODB_URI
-        sync: false
+        value: mongodb://127.0.0.1:27017/shazamdb
       - key: PORT
         value: 8080
       - key: SHAZAM_EXECUTABLE_PATH

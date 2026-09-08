@@ -55,14 +55,20 @@ RUN ./mvnw clean package -DskipTests -B
 # ----------------------------------------------------
 FROM eclipse-temurin:21-jre-jammy
 
-# Install runtime dependencies: ffmpeg, python3, curl, libfftw3, libsndfile
+# Install runtime dependencies: ffmpeg, python3, curl, libfftw3, libsndfile, gnupg, ca-certificates
+# Also install MongoDB 7.0 Community Server so no external database account is required
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     python3 \
     curl \
+    gnupg \
     ca-certificates \
     libfftw3-double3 \
     libsndfile1 \
+    && curl -fsSL https://www.mongodb.org/static/pgp/server-7.0.asc | gpg -o /usr/share/keyrings/mongodb-server-7.0.gpg --dearmor \
+    && echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-7.0.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends mongodb-org-server \
     && rm -rf /var/lib/apt/lists/*
 
 # Install official yt-dlp binary
@@ -78,16 +84,17 @@ RUN chmod +x /app/cpp_engine/shazam
 # Copy Spring Boot runnable JAR
 COPY --from=backend-builder /app/backend/target/*.jar /app/app.jar
 
-# Setup runtime storage
-RUN mkdir -p /tmp/shazam_uploads
+# Setup runtime entrypoint and data directories
+COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh && mkdir -p /tmp/shazam_uploads /data/db /var/log
 
 # Default Environment Variables
 ENV PORT=8080 \
     SHAZAM_EXECUTABLE_PATH=/app/cpp_engine/shazam \
     FFMPEG_PATH=/usr/bin/ffmpeg \
     UPLOAD_DIR=/tmp/shazam_uploads \
-    MONGODB_URI=mongodb://localhost:27017/shazamdb
+    MONGODB_URI=mongodb://127.0.0.1:27017/shazamdb
 
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-Xmx400m", "-jar", "/app/app.jar"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
