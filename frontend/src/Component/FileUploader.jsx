@@ -19,6 +19,8 @@ export default function FileUploader() {
   const [youtubeUrlsText, setYoutubeUrlsText] = useState("");
   const [maxTracks, setMaxTracks] = useState(5);
   const [quickSampleOnly, setQuickSampleOnly] = useState(true);
+  const [resolvingLink, setResolvingLink] = useState(false);
+  const [resolvedInfo, setResolvedInfo] = useState(null);
 
   // Live SSE Telemetry Logs
   const [logs, setLogs] = useState([
@@ -142,14 +144,16 @@ export default function FileUploader() {
     }
   };
 
-  // YouTube Ingestion Handler
-  const CURATED_PACKS = [
+  // Studio Reference Master Banks (Calibrated Acoustic Benchmarks)
+  const MASTER_BANKS = [
     {
-      id: "synthwave",
-      name: "Synthwave & Electronic",
-      desc: "Iconic synth hooks, punchy drums & electronic anthems",
-      icon: "🌌",
-      accent: "#a855f7",
+      id: "bank_01",
+      code: "BANK 01",
+      category: "SYNTHWAVE & TRANSIENT DYNAMICS",
+      subtitle: "Sharp transient percussion, wide stereo chorus & analog synth lead dynamics",
+      specs: "16-BIT / 16kHz MONO • 4 REF STEMS",
+      tracksSummary: ["Mr.Kitty - After Dark", "The Weeknd - Starboy", "HOME - Resonance", "Crystal Castles - Kerosene"],
+      accent: "#38bdf8",
       urls: [
         "https://www.youtube.com/watch?v=sVx1mJDeUjY # Mr.Kitty - After Dark",
         "https://www.youtube.com/watch?v=34Na4j8AVgA # The Weeknd - Starboy ft. Daft Punk",
@@ -158,11 +162,13 @@ export default function FileUploader() {
       ]
     },
     {
-      id: "global_hits",
-      name: "Global Chart Toppers",
-      desc: "Universally recognizable vocal melodies & acoustic anthems",
-      icon: "🎸",
-      accent: "#10b981",
+      id: "bank_02",
+      code: "BANK 02",
+      category: "VOCAL TIMBRE & ACOUSTIC RANGE",
+      subtitle: "Complex vocal presence, acoustic guitar harmonics & full-spectrum dynamic orchestrations",
+      specs: "16-BIT / 16kHz MONO • 4 REF STEMS",
+      tracksSummary: ["OneRepublic - Counting Stars", "Stromae - Alors on danse", "Indila - Dernière Danse", "Gotye - Somebody That I Used To Know"],
+      accent: "#34d399",
       urls: [
         "https://www.youtube.com/watch?v=hT_nvWreIhg # OneRepublic - Counting Stars",
         "https://www.youtube.com/watch?v=VHoT4N43jK8 # Stromae - Alors on danse",
@@ -171,11 +177,13 @@ export default function FileUploader() {
       ]
     },
     {
-      id: "night_drive",
-      name: "Night Drive & Phonk",
-      desc: "Deep bass, dark atmospheres & nocturnal driving soundtracks",
-      icon: "🏎️",
-      accent: "#f59e0b",
+      id: "bank_03",
+      code: "BANK 03",
+      category: "SUB-BASS & HARMONIC SATURATION",
+      subtitle: "Heavy 808 sub-bass, tape distortion, drift phonk transients & nocturnal lo-fi timbre",
+      specs: "16-BIT / 16kHz MONO • 3 REF STEMS",
+      tracksSummary: ["Mareux - The Perfect Girl", "Kavinsky - Nightcall", "Hensonn - Sahara"],
+      accent: "#fbbf24",
       urls: [
         "https://www.youtube.com/watch?v=sO_k8hXQ_8c # Mareux - The Perfect Girl",
         "https://www.youtube.com/watch?v=MV_3Dpw-BRY # Kavinsky - Nightcall",
@@ -183,6 +191,42 @@ export default function FileUploader() {
       ]
     }
   ];
+
+  const handleResolveLinks = async () => {
+    const lines = youtubeUrlsText.split("\n").map((l) => l.trim()).filter(Boolean);
+    if (lines.length === 0) {
+      setFailureMsg("Please paste a YouTube playlist, Spotify link, or album URL into the textarea first.");
+      return;
+    }
+
+    const firstTarget = lines[0].split("#")[0].trim();
+    setResolvingLink(true);
+    setFailureMsg("");
+    setResolvedInfo(null);
+
+    try {
+      const res = await axios.post(`${API_BASE}/api/youtube/resolve`, { url: firstTarget });
+      const data = res.data;
+      if (data && data.tracks && data.tracks.length > 0) {
+        setResolvedInfo(data);
+        const expandedLines = data.tracks.map((t) => {
+          const tag = t.artist ? `${t.title} by ${t.artist}` : t.title;
+          return `${t.query} # ${tag}`;
+        });
+        setYoutubeUrlsText(expandedLines.join("\n"));
+      } else {
+        setFailureMsg("No tracks resolved for target link.");
+      }
+    } catch (err) {
+      console.error("Failed link resolution", err);
+      setFailureMsg(
+        err.response?.data?.error ||
+          "Could not inspect playlist/Spotify link. Ensure backend server is reachable."
+      );
+    } finally {
+      setResolvingLink(false);
+    }
+  };
 
   const executeYouTubeIndex = async (customUrls = null) => {
     let rawList = [];
@@ -511,54 +555,69 @@ export default function FileUploader() {
           {sourceMode === "youtube" && (
             <div className="youtube-importer-deck">
               <div className="importer-instructions">
-                <h3>Stream & Fingerprint from YouTube</h3>
+                <div className="importer-title-row">
+                  <h3>Stream & Playlist Acoustic Ingestion</h3>
+                  <div className="supported-platform-pills mono">
+                    <span className="platform-pill yt">YOUTUBE</span>
+                    <span className="platform-pill ytm">YT MUSIC</span>
+                    <span className="platform-pill sp">SPOTIFY</span>
+                    <span className="platform-pill sc">SOUNDCLOUD</span>
+                  </div>
+                </div>
                 <p>
-                  Paste YouTube video URLs, playlist links, or direct search queries. 
-                  Optimized with <strong>audio-only extraction</strong>, <strong>4-thread chunk acceleration</strong>, and direct 16kHz mono WAV conversion.
+                  High-speed audio extraction with 4-thread acceleration, automated Spotify-to-stream metadata resolution, and local 16kHz mono WAV conversion.
                 </p>
               </div>
 
-              {/* Curated Music Packs */}
-              <div className="curated-packs-section">
-                <div className="packs-header">
-                  <span className="packs-title mono">CURATED SOURCE PACKS (VERIFIED YOUTUBE AUDIO)</span>
-                  <span className="packs-subtitle">Click to load into the ingestion queue or 1-click batch index</span>
+              {/* Reference Master Banks */}
+              <div className="reference-master-banks">
+                <div className="banks-rack-header">
+                  <div className="rack-title-left">
+                    <span className="rack-led-dot"></span>
+                    <span className="rack-title mono">REFERENCE MASTER BANKS // ACOUSTIC BENCHMARKS</span>
+                  </div>
+                  <span className="rack-spec-badge mono">CALIBRATED 16-BIT / 16kHz MONO</span>
                 </div>
 
-                <div className="curated-packs-grid">
-                  {CURATED_PACKS.map((pack) => (
-                    <div
-                      key={pack.id}
-                      className="pack-card"
-                      style={{ "--pack-accent": pack.accent }}
-                    >
-                      <div className="pack-card-header">
-                        <span className="pack-icon">{pack.icon}</span>
-                        <div className="pack-info">
-                          <span className="pack-name">{pack.name}</span>
-                          <span className="pack-count mono">{pack.urls.length} MASTER TRACKS</span>
+                <div className="banks-strips-rack">
+                  {MASTER_BANKS.map((bank) => (
+                    <div key={bank.id} className="master-bank-strip" style={{ "--bank-accent": bank.accent }}>
+                      <div className="bank-strip-top">
+                        <div className="bank-code-tag mono">{bank.code}</div>
+                        <div className="bank-meta">
+                          <h4 className="bank-category">{bank.category}</h4>
+                          <p className="bank-subtitle">{bank.subtitle}</p>
                         </div>
+                        <div className="bank-spec mono">{bank.specs}</div>
                       </div>
-                      <p className="pack-desc">{pack.desc}</p>
-                      <div className="pack-actions">
+
+                      <div className="bank-track-chips">
+                        {bank.tracksSummary.map((track, i) => (
+                          <span key={i} className="track-chip mono">
+                            <span className="chip-bullet">•</span> {track}
+                          </span>
+                        ))}
+                      </div>
+
+                      <div className="bank-strip-actions">
                         <button
                           type="button"
-                          className="btn-pack-load mono"
-                          onClick={() => loadCuratedPack(pack)}
+                          className="btn-bank-action btn-bank-load mono"
+                          onClick={() => loadCuratedPack(bank)}
                           disabled={indexingStatus === "processing"}
                         >
-                          Load Queue
+                          [ LOAD STAGING ]
                         </button>
                         <button
                           type="button"
-                          className="btn-pack-run mono"
+                          className="btn-bank-action btn-bank-ingest mono"
                           onClick={() => {
-                            loadCuratedPack(pack);
-                            executeYouTubeIndex(pack.urls);
+                            loadCuratedPack(bank);
+                            executeYouTubeIndex(bank.urls);
                           }}
                           disabled={indexingStatus === "processing"}
                         >
-                          ⚡ Ingest Pack
+                          ▶ BENCHMARK INGEST
                         </button>
                       </div>
                     </div>
@@ -568,17 +627,47 @@ export default function FileUploader() {
 
               <div className="youtube-form-group">
                 <div className="form-label-row">
-                  <label className="mono">CUSTOM YOUTUBE URLS OR PLAYLISTS (ONE PER LINE)</label>
-                  <span className="form-label-hint mono">Supports # comments, direct links, and video IDs</span>
+                  <label className="mono">STREAM TARGETS: PLAYLISTS, TRACKS & SPOTIFY LINKS (ONE PER LINE)</label>
+                  <button
+                    type="button"
+                    className="btn-resolve-link mono"
+                    onClick={handleResolveLinks}
+                    disabled={resolvingLink || indexingStatus === "processing"}
+                    title="Inspect and resolve full playlist or Spotify tracklist into individual query rows"
+                  >
+                    {resolvingLink ? "INSPECTING TARGET STREAM..." : "⚡ RESOLVE & EXPAND PLAYLIST / SPOTIFY"}
+                  </button>
                 </div>
                 <textarea
                   className="youtube-textarea mono"
-                  rows={4}
-                  placeholder={`https://www.youtube.com/watch?v=sVx1mJDeUjY # Mr.Kitty - After Dark\nhttps://www.youtube.com/watch?v=34Na4j8AVgA # The Weeknd - Starboy\nhttps://www.youtube.com/playlist?list=...`}
+                  rows={5}
+                  placeholder={`# Paste single tracks, full YouTube playlists, or Spotify albums/playlists:\nhttps://www.youtube.com/playlist?list=PLrAlGoj0wZVhFvQG_B3f52l22X_Q59X3u\nhttps://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M\nhttps://www.youtube.com/watch?v=sVx1mJDeUjY # Mr.Kitty - After Dark`}
                   value={youtubeUrlsText}
                   onChange={(e) => setYoutubeUrlsText(e.target.value)}
                   disabled={indexingStatus === "processing"}
                 ></textarea>
+              </div>
+
+              {resolvedInfo && (
+                <div className="resolved-notice-box animate-fade-in">
+                  <span className="resolved-icon mono">✓</span>
+                  <span className="resolved-text mono">
+                    RESOLVED {resolvedInfo.count} TRACKS FROM [{resolvedInfo.type?.toUpperCase()}] • EXPANDED INTO QUEUE
+                  </span>
+                </div>
+              )}
+
+              {/* Protocol helper banner */}
+              <div className="playlist-guide-banner">
+                <div className="guide-icon mono">ℹ</div>
+                <div className="guide-content">
+                  <div className="guide-title mono">PLAYLIST & STREAM INGESTION PROTOCOL</div>
+                  <p className="guide-desc">
+                    <strong>YouTube Playlists:</strong> Paste any playlist URL (<code>playlist?list=...</code>). Set <strong>MAX TRACKS</strong> below to limit sequential processing depth.
+                    <br />
+                    <strong>Spotify Playlists & Albums:</strong> Spotify streams utilize Widevine DRM encryption. Our automated bridge resolves authentic track metadata from Spotify and maps each song to verified high-fidelity YouTube audio streams for fingerprinting.
+                  </p>
+                </div>
               </div>
 
               <div className="importer-controls-row">
@@ -587,7 +676,7 @@ export default function FileUploader() {
                   <input
                     type="number"
                     min="1"
-                    max="25"
+                    max="50"
                     value={maxTracks}
                     onChange={(e) => setMaxTracks(e.target.value)}
                     className="max-tracks-input mono"
@@ -614,7 +703,7 @@ export default function FileUploader() {
                   className="btn btn-primary start-indexing-btn"
                   onClick={() => executeYouTubeIndex()}
                 >
-                  ⚡ Download, Fingerprint & Index YouTube Queue
+                  ⚡ Download, Transcode & Index Audio Queue
                 </button>
               )}
             </div>

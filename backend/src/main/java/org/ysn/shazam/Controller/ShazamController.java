@@ -83,6 +83,22 @@ public class ShazamController {
         }
     }
 
+    @PostMapping("/youtube/resolve")
+    public ResponseEntity<?> resolveLink(@RequestBody Map<String, String> body) {
+        String url = body.get("url");
+        if (url == null || url.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "URL parameter required"));
+        }
+        try {
+            Map<String, Object> resolved = youTubeService.resolveLink(url.trim());
+            return ResponseEntity.ok(resolved);
+        } catch (Exception e) {
+            log.error("Error resolving stream link: " + url, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to resolve stream link: " + e.getMessage()));
+        }
+    }
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor

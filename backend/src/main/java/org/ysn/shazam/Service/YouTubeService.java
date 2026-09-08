@@ -8,13 +8,23 @@ import org.springframework.stereotype.Service;
 import org.ysn.shazam.Repository.SongRepository;
 import org.ysn.shazam.model.Song;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class YouTubeService {
@@ -38,13 +48,116 @@ public class YouTubeService {
     @Value("${yt-dlp.executable.path:yt-dlp}")
     private String ytDlpPath;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final HttpClient httpClient = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
+            .followRedirects(HttpClient.Redirect.ALWAYS)
+            .connectTimeout(Duration.ofSeconds(10))
+            .build();
+
+    public static class SpotifyTrackDTO {
+        private String title;
+        private String artist;
+        private String sourceUrl;
+
+        public SpotifyTrackDTO(String title, String artist, String sourceUrl) {
+            this.title = title;
+            this.artist = artist;
+            this.sourceUrl = sourceUrl;
+        }
+
+        public String getTitle() { return title; }
+        public String getArtist() { return artist; }
+        public String getSourceUrl() { return sourceUrl; }
+    }
+
+    public boolean isSpotifyUrl(String url) {
+        if (url == null) return false;
+        String lower = url.toLowerCase();
+        return lower.contains("open.spotify.com/") || lower.contains("spotify.link/");
+    }
+
+    public boolean isPlaylistUrl(String url) {
+        if (url == null) return false;
+        String lower = url.toLowerCase();
+        return lower.contains("playlist?list=")
+                || lower.contains("&list=pl")
+                || lower.contains("?list=pl")
+                || lower.contains("&list=olak")
+                || lower.contains("?list=olak")
+                || lower.contains("&list=cl")
+                || lower.contains("music.youtube.com/playlist");
+    }
+
     /**
-     * High-speed, robust YouTube ingestion pipeline:
-     * 1. Native compressed audio download via yt-dlp (ba/b, 4 parallel chunk threads)
-     * 2. Intelligent Artist & Title tag extraction from YouTube metadata & title strings
+     * Extracts track metadata from a public Spotify playlist, album, or track URL
+     * via Spotify's embed data payload.
+     */
+    public List<SpotifyTrackDTO> extractSpotifyTracks(String spotifyUrl) {
+        List<SpotifyTrackDTO> tracks = new ArrayList<>();
+        if (spotifyUrl == null || spotifyUrl.isBlank()) return tracks;
+
+        try {
+            String cleanUrl = spotifyUrl.split("[?#]")[0].trim();
+            String embedUrl = cleanUrl.contains("/embed/") ? cleanUrl : cleanUrl.replace("open.spotify.com/", "open.spotify.com/embed/");
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(embedUrl))
+                    .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    .timeout(Duration.ofSeconds(10))
+                    .GET()
+                    .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                logService.log("WARN", "Spotify embed lookup returned HTTP " + response.statusCode());
+                return tracks;
+            }
+
+            String html = response.body();
+            Pattern pattern = Pattern.compile("<script id=\"__NEXT_DATA__\"[^>]*>([\\s\\S]*?)</script>");
+            Matcher matcher = pattern.matcher(html);
+            if (matcher.find()) {
+                String jsonStr = matcher.group(1);
+                JsonNode root = objectMapper.readTree(jsonStr);
+                JsonNode entity = root.path("props").path("pageProps").path("state").path("data").path("entity");
+
+                // Check for playlist / album tracklist
+                if (entity.has("trackList") && entity.get("trackList").isArray()) {
+                    for (JsonNode t : entity.get("trackList")) {
+                        String title = t.path("title").asText("").trim();
+                        String artist = t.path("subtitle").asText("").trim();
+                        String uri = t.path("uri").asText("");
+                        if (!title.isEmpty()) {
+                            tracks.add(new SpotifyTrackDTO(title, artist, uri.isEmpty() ? spotifyUrl : uri));
+                        }
+                    }
+                } else if (entity.has("name")) {
+                    // Single track
+                    String title = entity.path("name").asText("").trim();
+                    String artist = "";
+                    if (entity.has("artists") && entity.get("artists").isArray() && entity.get("artists").size() > 0) {
+                        artist = entity.get("artists").get(0).path("name").asText("").trim();
+                    }
+                    if (!title.isEmpty()) {
+                        tracks.add(new SpotifyTrackDTO(title, artist, spotifyUrl));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to parse Spotify embed metadata for " + spotifyUrl, e);
+            logService.log("WARN", "Spotify metadata resolution notice: " + e.getMessage());
+        }
+        return tracks;
+    }
+
+    /**
+     * High-speed, robust stream ingestion pipeline:
+     * 1. Direct YouTube stream, YouTube Playlists & Spotify URL bridge
+     * 2. Intelligent Artist & Title tag extraction from YouTube metadata & Spotify JSON
      * 3. Sub-second local FFmpeg transcoding to 16kHz mono 16-bit PCM WAV
      * 4. Turbo mode: 90s sample extraction (instantaneous fingerprinting)
-     * 5. Accurate database persistence with direct YouTube link
+     * 5. Accurate database persistence with verified streaming reference link
      */
     public List<Map<String, Object>> ingestYouTubeUrls(List<String> urls, int maxTracks, boolean quickSampleOnly) {
         List<Map<String, Object>> results = new ArrayList<>();
@@ -58,23 +171,50 @@ public class YouTubeService {
         }
 
         try {
-            int totalProcessed = 0;
-            logService.log("INFO", "Initializing YouTube ingestion for " + urls.size() + " target(s)...");
+            // Expand Spotify playlists and items to search targets
+            List<String> expandedTargets = new ArrayList<>();
+            for (String raw : urls) {
+                if (raw == null || raw.trim().isEmpty()) continue;
+                String trimmed = raw.trim();
+                String cleanUrl = trimmed.contains("#") ? trimmed.split("#", 2)[0].trim() : trimmed;
 
-            for (String url : urls) {
+                if (isSpotifyUrl(cleanUrl)) {
+                    logService.log("SPOTIFY", "Resolving Spotify link: " + cleanUrl);
+                    List<SpotifyTrackDTO> spTracks = extractSpotifyTracks(cleanUrl);
+                    if (!spTracks.isEmpty()) {
+                        logService.log("SPOTIFY", "Extracted " + spTracks.size() + " track(s) from Spotify metadata");
+                        for (SpotifyTrackDTO st : spTracks) {
+                            String search = "ytsearch1:" + (st.getArtist().isEmpty() ? "" : st.getArtist() + " - ") + st.getTitle() + " audio";
+                            expandedTargets.add(search);
+                            logService.log("QUEUE", "Mapped Spotify: \"" + st.getTitle() + "\" by " + st.getArtist());
+                        }
+                    } else {
+                        logService.log("WARN", "No tracks extracted from Spotify URL. Skipping: " + cleanUrl);
+                    }
+                } else {
+                    expandedTargets.add(trimmed);
+                }
+            }
+
+            int totalProcessed = 0;
+            logService.log("INFO", "Executing stream ingestion for " + expandedTargets.size() + " target(s)...");
+
+            for (String url : expandedTargets) {
                 if (url == null || url.trim().isEmpty()) continue;
                 if (totalProcessed >= maxTracks) break;
 
                 String target = url.trim();
-
-                // Normalize YouTube URLs: If someone copies a video while listening to a mix/radio,
-                // YouTube adds &list=RD... which stalls yt-dlp. Strip radio/mix parameters!
-                if (target.contains("watch?v=") && target.contains("list=RD")) {
-                    target = target.replaceAll("[&?]list=RD[^&]*", "").replaceAll("[&?]index=\\d+", "").replaceAll("[&?]start_radio=1", "");
-                    logService.log("NORMALIZE", "Cleaned dynamic YouTube radio mix parameters: " + target);
+                if (target.contains("#")) {
+                    target = target.split("#", 2)[0].trim();
                 }
 
-                logService.log("RESOLVING", "Connecting to YouTube stream: " + target);
+                // Clean dynamic YouTube radio mix parameters (list=RD...) that block yt-dlp
+                if (target.contains("watch?v=") && target.contains("list=RD")) {
+                    target = target.replaceAll("[&?]list=RD[^&]*", "").replaceAll("[&?]index=\\d+", "").replaceAll("[&?]start_radio=1", "");
+                    logService.log("NORMALIZE", "Cleaned dynamic YouTube radio mix parameter: " + target);
+                }
+
+                logService.log("RESOLVING", "Connecting to audio stream target: " + target);
 
                 String outputTemplate = tempDir.resolve("%(id)s.%(ext)s").toAbsolutePath().toString();
 
@@ -89,8 +229,8 @@ public class YouTubeService {
                 cmd.add("--no-check-certificates");
                 cmd.add("--no-warnings");
 
-                // Enforce --no-playlist unless explicitly a playlist URL
-                if (!target.contains("playlist?list=")) {
+                // Enforce --no-playlist UNLESS target is a recognized playlist or search query
+                if (!isPlaylistUrl(target) && !target.startsWith("ytsearch")) {
                     cmd.add("--no-playlist");
                 }
 
@@ -135,7 +275,7 @@ public class YouTubeService {
                 long downloadDuration = System.currentTimeMillis() - downloadStart;
 
                 if (printOutputs.isEmpty()) {
-                    logService.log("WARN", "yt-dlp produced no output for: " + target + " (code " + exitCode + ")");
+                    logService.log("WARN", "yt-dlp produced no stream output for: " + target + " (code " + exitCode + ")");
                     continue;
                 }
 
@@ -337,6 +477,85 @@ public class YouTubeService {
             this.artist = artist;
             this.title = title;
         }
+    }
+
+    /**
+     * Inspects a URL and resolves playlist / album tracklists (Spotify or YouTube)
+     * without starting heavy audio downloading.
+     */
+    public Map<String, Object> resolveLink(String url) {
+        Map<String, Object> result = new HashMap<>();
+        if (url == null || url.isBlank()) {
+            result.put("error", "URL cannot be empty");
+            return result;
+        }
+
+        String target = url.trim();
+        if (target.contains("#")) {
+            target = target.split("#", 2)[0].trim();
+        }
+
+        if (isSpotifyUrl(target)) {
+            List<SpotifyTrackDTO> tracks = extractSpotifyTracks(target);
+            result.put("type", "spotify");
+            result.put("sourceUrl", target);
+            result.put("count", tracks.size());
+            List<Map<String, String>> items = new ArrayList<>();
+            for (SpotifyTrackDTO st : tracks) {
+                items.add(Map.of(
+                        "title", st.getTitle(),
+                        "artist", st.getArtist(),
+                        "query", "ytsearch1:" + (st.getArtist().isEmpty() ? "" : st.getArtist() + " - ") + st.getTitle() + " audio"
+                ));
+            }
+            result.put("tracks", items);
+            return result;
+        }
+
+        if (isPlaylistUrl(target)) {
+            result.put("type", "youtube_playlist");
+            result.put("sourceUrl", target);
+            List<String> cmd = List.of(
+                    findYtDlpExecutable(),
+                    "--flat-playlist",
+                    "--print", "%(id)s|||%(title)s|||%(channel)s",
+                    "--max-downloads", "25",
+                    target
+            );
+            List<Map<String, String>> items = new ArrayList<>();
+            try {
+                Process proc = new ProcessBuilder(cmd).start();
+                try (BufferedReader r = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
+                    String line;
+                    while ((line = r.readLine()) != null) {
+                        if (line.contains("|||")) {
+                            String[] parts = line.split("\\|\\|\\|");
+                            String id = parts[0].trim();
+                            String title = parts.length > 1 ? parts[1].trim() : "Unknown";
+                            String channel = parts.length > 2 ? parts[2].trim() : "";
+                            items.add(Map.of(
+                                    "title", title,
+                                    "artist", channel,
+                                    "query", "https://www.youtube.com/watch?v=" + id
+                            ));
+                        }
+                    }
+                }
+                proc.waitFor();
+            } catch (Exception e) {
+                log.warn("Fast playlist metadata extract error: " + e.getMessage());
+            }
+            result.put("count", items.size());
+            result.put("tracks", items);
+            return result;
+        }
+
+        // Single target
+        result.put("type", "single");
+        result.put("sourceUrl", target);
+        result.put("count", 1);
+        result.put("tracks", List.of(Map.of("title", target, "artist", "", "query", target)));
+        return result;
     }
 
     private String findYtDlpExecutable() {
