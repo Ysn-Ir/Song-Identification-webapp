@@ -42,13 +42,13 @@ RUN cd cpp_engine && make
 WORKDIR /app/backend
 COPY backend/mvnw backend/mvnw.cmd backend/pom.xml ./
 COPY backend/.mvn ./.mvn
-RUN ./mvnw dependency:go-offline -B
+RUN chmod +x ./mvnw
 
 COPY backend/src ./src
 # Copy static frontend bundle into Spring Boot resources
 COPY --from=frontend-builder /app/frontend/dist ./src/main/resources/static/
 
-RUN ./mvnw clean package -DskipTests -B
+RUN sh ./mvnw clean package -DskipTests -B
 
 # ----------------------------------------------------
 # Stage 3: Production Runtime
