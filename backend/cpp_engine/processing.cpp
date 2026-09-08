@@ -9,7 +9,6 @@ std::vector<std::vector<double>> Spectogram(std::vector<double>& audio, FFT& fft
     for (int index = 0; index < audio.size(); index += WINDOW_SIZE - OVERLAPPING_SIZE) {
         std::vector<double>frame = windowing(audio.data(), audio.size(), index);
         fft.execute(frame.data());
-        fftw_complex* out = fft.getOutput();
         std::vector<double>magnitude(MAX_BIN);
         for (size_t i = 0; i < MAX_BIN; i++) {
             magnitude[i] = fft.getMagnitude(i);

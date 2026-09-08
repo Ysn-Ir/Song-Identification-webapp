@@ -1,6 +1,8 @@
 #pragma once
 #include "FFT.h"
 #include "audio.h"
+#include <cstdint>
+#include <vector>
 #include <utility>
 #include <fstream>
 #include <unordered_map>

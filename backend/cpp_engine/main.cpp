@@ -11,8 +11,6 @@ int main(int argc , char* argv[]) {
     initHamming();
     FFT fft(WINDOW_SIZE);
 
-    const char* directoryPath = "C:/Users/khali/OneDrive/Bureau/learning/datascience/songs";
-
     // run this once to create the database or append to it , commented cuz it doesnt need to run everytime its all stored in a binary file
     if(command=="build")
         processInBulk(path.c_str(), fft);

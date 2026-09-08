@@ -1,6 +1,7 @@
 #pragma once
-#include<fftw3.h>
+#include <fftw3.h>
 #include <stdexcept>
+#include <cmath>
 class FFT {
 private:
     int N;
