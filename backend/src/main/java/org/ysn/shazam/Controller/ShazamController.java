@@ -262,26 +262,21 @@ public class ShazamController {
                 return ResponseEntity.ok(new RecognitionResponseDTO(false, null, 0, "No audio hashes detected."));
             }
 
-            // Retain up to 2,000 candidate hashes: guarantees 100% coverage for 5-10s mic captures
-            // while guarding against out-of-memory on large multi-minute uploads.
-            int sampleCap = 2000;
-            List<AudioHashService.HashEntryDTO> queryEntries;
-            if (entries.size() > sampleCap) {
-                queryEntries = new ArrayList<>(sampleCap);
-                double step = (double) entries.size() / (double) sampleCap;
-                for (int i = 0; i < sampleCap; i++) {
-                    queryEntries.add(entries.get((int) (i * step)));
-                }
-            } else {
-                queryEntries = entries;
-            }
+            // For audio samples, keep up to 8,000 contiguous fingerprints.
+            // Keeping contiguous hashes preserves the anchor-target peak pairings intact
+            // for maximum acoustic recognition accuracy.
+            List<AudioHashService.HashEntryDTO> queryEntries = entries.size() > 8000
+                    ? entries.subList(0, 8000)
+                    : entries;
 
             Set<Long> uniqueHashes = queryEntries.stream()
                     .map(AudioHashService.HashEntryDTO::getHash)
                     .collect(Collectors.toSet());
 
-            // Bulk fetch matching hashes from MongoDB
+            // Bulk fetch matching hashes from MongoDB using compound index
             List<AudioHash> allMatches = audioHashRepository.findByHashIn(uniqueHashes);
+            log.info("Recognition: {} hashes ({} unique) -> {} MongoDB hits across {} candidate songs",
+                    entries.size(), uniqueHashes.size(), allMatches.size(), allMatches.stream().map(AudioHash::getSongId).distinct().count());
 
             Map<Long, List<AudioHash>> hashToOccurrences = new HashMap<>();
             for (AudioHash match : allMatches) {
@@ -328,6 +323,8 @@ public class ShazamController {
                     }
                 }
             }
+
+            log.info("Recognition evaluated: bestSongId={}, highestConfidenceScore={}", bestSongId, highestScore);
 
             // A threshold of >= 3 coherently aligned hashes ensures noise rejection
             if (bestSongId != -1 && highestScore >= 3) {

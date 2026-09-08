@@ -67,8 +67,6 @@ public class ShazamService {
             cmd.add("16000");
             cmd.add("-ac");
             cmd.add("1");
-            cmd.add("-af");
-            cmd.add("loudnorm=I=-14:TP=-1:LRA=11");
             cmd.add("-c:a");
             cmd.add("pcm_s16le");
             cmd.add(normalizedFile.getAbsolutePath());
