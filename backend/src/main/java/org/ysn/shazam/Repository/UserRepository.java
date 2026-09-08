@@ -5,5 +5,6 @@ import org.springframework.stereotype.Repository;
 import org.ysn.shazam.model.User;
 
 @Repository
-public interface UserRepository extends MongoRepository<User, Integer> {
+public interface UserRepository extends MongoRepository<User, String> {
 }
+

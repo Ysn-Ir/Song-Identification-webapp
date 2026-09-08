@@ -1,0 +1,18 @@
+# Dependencies & Build artifacts
+node_modules/
+dist/
+backend/target/
+frontend/dist/
+frontend/node_modules/
+
+# Audio Uploads & Temp Directories
+backend/uploads/
+uploads/
+*.log
+
+# IDE & OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db

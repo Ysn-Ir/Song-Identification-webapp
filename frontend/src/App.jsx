@@ -1,29 +1,36 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./Component/Navbar";
-import FileUploader from "./Component/FileUploader";
 import SongRecognizer from "./Component/SongRecognizer";
-import "./App.css"; // Assuming you have standard App CSS
+import SongLibrary from "./Component/SongLibrary";
+import FileUploader from "./Component/FileUploader";
+import "./App.css";
 
 function App() {
   return (
     <Router>
       <div className="app-container">
-        {/* The Navbar stays at the top of every page */}
+        {/* Sticky Glassmorphic Navbar with Live Engine Status */}
         <Navbar />
 
-        {/* The Routes decide which component to show below the Navbar */}
-        <div
-          className="page-content"
-          style={{ padding: "0 20px", maxWidth: "800px", margin: "0 auto" }}
-        >
+        {/* Dynamic Route Content */}
+        <main className="page-content">
           <Routes>
-            {/* The default page (http://localhost:5173/) */}
-            <Route path="/" element={<FileUploader />} />
+            {/* Default page redirects to live recognition */}
+            <Route path="/" element={<Navigate to="/recognize" replace />} />
 
-            {/* The recognize page (http://localhost:5173/recognize) */}
+            {/* Song Recognition (Microphone listening & File drop) */}
             <Route path="/recognize" element={<SongRecognizer />} />
+
+            {/* Catalog Browser (Inspect, search, and delete indexed songs) */}
+            <Route path="/library" element={<SongLibrary />} />
+
+            {/* Batch Music Indexer (Add songs with tags into the database) */}
+            <Route path="/add" element={<FileUploader />} />
+
+            {/* Catch-all fallback */}
+            <Route path="*" element={<Navigate to="/recognize" replace />} />
           </Routes>
-        </div>
+        </main>
       </div>
     </Router>
   );

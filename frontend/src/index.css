@@ -1,0 +1,234 @@
+/* index.css - Shazam Acoustic Studio Design System */
+:root {
+  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Theme Colors - Hardware Studio Tone */
+  --bg-main: #090c12;
+  --bg-surface: #101522;
+  --bg-surface-elevated: #161c2d;
+  --bg-surface-hover: #1d253b;
+  --bg-input: #0c0f17;
+
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-focus: #00d4ff;
+  --border-hover: rgba(0, 212, 255, 0.3);
+
+  /* Studio Accents */
+  --shazam-blue: #0070f3;
+  --shazam-cyan: #00e5ff;
+  --shazam-glow: rgba(0, 112, 243, 0.25);
+  --cyan-glow: rgba(0, 229, 255, 0.25);
+
+  --meter-green: #10b981;
+  --meter-yellow: #f59e0b;
+  --meter-red: #ef4444;
+
+  /* Typography */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-dim: #475569;
+
+  /* Dimensions */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-main);
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(0, 112, 243, 0.12) 0%, transparent 60%),
+    radial-gradient(circle at 100% 100%, rgba(0, 229, 255, 0.06) 0%, transparent 50%),
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum';
+}
+
+/* Layout */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
+  max-width: 1060px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px 72px;
+}
+
+/* Studio Surface Cards */
+.studio-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.studio-card:hover {
+  border-color: var(--border-hover);
+}
+
+/* Professional Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, #0088ff 0%, #0066cc 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 112, 243, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #1a95ff 0%, #0077e6 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 112, 243, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-hover);
+  color: #ffffff;
+}
+
+.btn-demo {
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid rgba(0, 229, 255, 0.25);
+  color: var(--shazam-cyan);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 8px 14px;
+}
+
+.btn-demo:hover:not(:disabled) {
+  background: rgba(0, 229, 255, 0.16);
+  border-color: var(--shazam-cyan);
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.25);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Telemetry Badge */
+.telemetry-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  border-radius: var(--radius-xs);
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.telemetry-tag.active {
+  border-color: rgba(16, 185, 129, 0.4);
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.status-beacon {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-surface-hover);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--shazam-cyan);
+}
