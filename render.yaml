@@ -1,39 +1,19 @@
 services:
-  # ============================================================================
-  # 1. Spring Boot + C++ Shazam Audio DSP Engine (Docker Web Service)
-  # ============================================================================
   - type: web
-    name: shazam-dsp-backend
+    name: acoustic-shazam
     runtime: docker
-    dockerfilePath: backend/Dockerfile
-    dockerContext: backend
-    plan: starter # Starter plan recommended for FFmpeg and audio processing memory
-    region: frankfurt # Or oregon / ohio
-    healthCheckPath: /api/stats
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
     envVars:
+      - key: MONGODB_URI
+        sync: false
       - key: PORT
         value: 8080
       - key: SHAZAM_EXECUTABLE_PATH
-        value: /app/shazam
+        value: /app/cpp_engine/shazam
+      - key: FFMPEG_PATH
+        value: /usr/bin/ffmpeg
       - key: UPLOAD_DIR
-        value: /app/uploads
-      - key: MONGODB_URI
-        sync: false # Supply your free MongoDB Atlas connection string in Render Dashboard
-
-  # ============================================================================
-  # 2. Shazam React Studio UI (Static Site)
-  # ============================================================================
-  - type: web
-    name: shazam-studio-ui
-    runtime: static
-    plan: free
-    region: frankfurt
-    rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: dist
-    envVars:
-      - key: VITE_API_BASE
-        fromService:
-          type: web
-          name: shazam-dsp-backend
-          property: host
+        value: /tmp/shazam_uploads

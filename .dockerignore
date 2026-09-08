@@ -1,0 +1,12 @@
+.git
+.github
+node_modules
+dist
+target
+*.obj
+*.exe
+*.log
+uploads
+*.wav
+*.mp3
+.tempmediaStorage

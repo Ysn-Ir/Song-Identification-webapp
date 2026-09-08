@@ -691,6 +691,246 @@
   gap: 12px;
 }
 
+/* Quick Test Reference Bench */
+.demo-bench-container {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px 20px 20px;
+  margin-bottom: 24px;
+}
+
+.demo-bench-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bench-title {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bench-title::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--shazam-cyan);
+  box-shadow: 0 0 8px var(--shazam-cyan);
+}
+
+.bench-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.demo-bench-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.demo-card {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.demo-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--card-accent, var(--shazam-cyan));
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.demo-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+}
+
+.demo-card:hover::before {
+  opacity: 1;
+}
+
+.demo-card.selected {
+  border-color: var(--card-accent, var(--shazam-cyan));
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.demo-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.demo-genre {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.demo-dur {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+}
+
+.demo-card-body {
+  margin-bottom: 12px;
+}
+
+.demo-title {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.demo-artist {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.demo-card-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.demo-btn-identify {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.demo-btn-identify:hover:not(:disabled) {
+  background: var(--card-accent, var(--shazam-blue));
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* Vinyl Album Sleeve Cover */
+.sleeve-art-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  display: block;
+}
+
+.vinyl-grooves {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    inset 0 0 0 10px rgba(0, 0, 0, 0.7),
+    inset 0 0 0 11px rgba(255, 255, 255, 0.04),
+    inset 0 0 0 20px rgba(0, 0, 0, 0.8),
+    inset 0 0 0 21px rgba(255, 255, 255, 0.03);
+}
+
+.btn-action-yt {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 0, 0, 0.12);
+  border: 1px solid rgba(255, 0, 0, 0.35);
+  color: #ff4d4d;
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.btn-action-yt:hover {
+  background: rgba(255, 0, 0, 0.22);
+  border-color: #ff0000;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(255, 0, 0, 0.3);
+}
+
+.btn-action-spotify {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(29, 185, 84, 0.12);
+  border: 1px solid rgba(29, 185, 84, 0.35);
+  color: #1ed760;
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.btn-action-spotify:hover {
+  background: rgba(29, 185, 84, 0.22);
+  border-color: #1db954;
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(29, 185, 84, 0.3);
+}
+
+@media (max-width: 768px) {
+  .demo-bench-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .demo-bench-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 680px) {
   .studio-telemetry-strip {
     grid-template-columns: 1fr 1fr;

@@ -66,6 +66,13 @@ export default function SongLibrary() {
     );
   });
 
+  const getYouTubeThumbnail = (url) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? `https://img.youtube.com/vi/${match[2]}/default.jpg` : null;
+  };
+
   const avgHashes = stats.totalSongs > 0 ? Math.round(stats.totalHashes / stats.totalSongs) : 0;
 
   return (
@@ -181,44 +188,61 @@ export default function SongLibrary() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((song) => (
-                <tr key={song.id} className="catalog-row">
-                  <td className="row-id mono">#{song.id}</td>
-                  <td className="row-track-name">
-                    <div className="track-cell">
-                      <div className="track-waveform-glyph">
-                        <span></span><span></span><span></span><span></span><span></span>
+              {filtered.map((song) => {
+                const thumb = getYouTubeThumbnail(song.link);
+                return (
+                  <tr key={song.id} className="catalog-row">
+                    <td className="row-id mono">#{song.id}</td>
+                    <td className="row-track-name">
+                      <div className="track-cell">
+                        <div className="track-thumb-box">
+                          {thumb ? (
+                            <img src={thumb} alt="" className="track-thumb-img" />
+                          ) : (
+                            <div className="track-waveform-glyph">
+                              <span></span><span></span><span></span><span></span><span></span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="track-title-block">
+                          <span className="track-title-text">{song.name}</span>
+                          {song.link && (
+                            <a
+                              href={song.link}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="track-source-url mono"
+                              title={song.link}
+                            >
+                              <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                              </svg>
+                              {song.link.replace(/^https?:\/\/(www\.)?/, "").length > 32
+                                ? song.link.replace(/^https?:\/\/(www\.)?/, "").substring(0, 32) + "..."
+                                : song.link.replace(/^https?:\/\/(www\.)?/, "")}
+                            </a>
+                          )}
+                        </div>
                       </div>
-                      <div className="track-title-block">
-                        <span className="track-title-text">{song.name}</span>
-                        {song.link && (
-                          <a
-                            href={song.link}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="track-source-url mono"
-                            title={song.link}
-                          >
-                            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                            </svg>
-                            {song.link.replace(/^https?:\/\/(www\.)?/, "").length > 32
-                              ? song.link.replace(/^https?:\/\/(www\.)?/, "").substring(0, 32) + "..."
-                              : song.link.replace(/^https?:\/\/(www\.)?/, "")}
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="row-artist">{song.artist || "Unknown Artist"}</td>
-                  <td className="row-hashes mono">
-                    <span className="hash-metric-pill">
-                      {song.hashCount ? song.hashCount.toLocaleString() : 0} hashes
-                    </span>
-                  </td>
-                  <td className="row-actions">
-                    <div className="action-button-group">
+                    </td>
+                    <td className="row-artist">{song.artist || "Unknown Artist"}</td>
+                    <td className="row-hashes mono">
+                      <span className="hash-metric-pill">
+                        {song.hashCount ? song.hashCount.toLocaleString() : 0} hashes
+                      </span>
+                    </td>
+                    <td className="row-actions">
+                      <div className="action-button-group">
+                        <Link
+                          to="/"
+                          className="btn-icon-link test-recog"
+                          title="Test recognize audio"
+                        >
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                            <polygon points="5 3 19 12 5 21 5 3"/>
+                          </svg>
+                        </Link>
                       {song.link && (
                         <a
                           href={song.link}
@@ -278,8 +302,9 @@ export default function SongLibrary() {
                       </button>
                     </div>
                   </td>
-                </tr>
-              ))}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

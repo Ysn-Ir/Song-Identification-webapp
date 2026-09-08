@@ -16,3 +16,6 @@ uploads/
 *.iml
 .DS_Store
 Thumbs.db
+*.obj
+*.pdb
+opencv_*.dll

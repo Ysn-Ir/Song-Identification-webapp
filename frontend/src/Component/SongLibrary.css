@@ -173,6 +173,25 @@
   gap: 12px;
 }
 
+.track-thumb-box {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+  background: var(--bg-surface-elevated);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--border-subtle);
+}
+
+.track-thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .track-title-block {
   display: flex;
   flex-direction: column;
@@ -252,6 +271,12 @@
   color: var(--text-secondary);
   transition: all 0.15s ease;
   text-decoration: none;
+}
+
+.btn-icon-link.test-recog:hover {
+  background: rgba(0, 229, 255, 0.18);
+  border-color: var(--shazam-cyan);
+  color: var(--shazam-cyan);
 }
 
 .btn-icon-link.spotify:hover {

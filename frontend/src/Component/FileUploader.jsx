@@ -143,44 +143,93 @@ export default function FileUploader() {
   };
 
   // YouTube Ingestion Handler
-  const executeYouTubeIndex = async () => {
-    const rawLines = youtubeUrlsText
-      .split("\n")
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0);
+  const CURATED_PACKS = [
+    {
+      id: "synthwave",
+      name: "Synthwave & Electronic",
+      desc: "Iconic synth hooks, punchy drums & electronic anthems",
+      icon: "🌌",
+      accent: "#a855f7",
+      urls: [
+        "https://www.youtube.com/watch?v=sVx1mJDeUjY # Mr.Kitty - After Dark",
+        "https://www.youtube.com/watch?v=34Na4j8AVgA # The Weeknd - Starboy ft. Daft Punk",
+        "https://www.youtube.com/watch?v=8GW6sLrK40k # HOME - Resonance",
+        "https://www.youtube.com/watch?v=NvRUpkTrTGk # Crystal Castles - Kerosene"
+      ]
+    },
+    {
+      id: "global_hits",
+      name: "Global Chart Toppers",
+      desc: "Universally recognizable vocal melodies & acoustic anthems",
+      icon: "🎸",
+      accent: "#10b981",
+      urls: [
+        "https://www.youtube.com/watch?v=hT_nvWreIhg # OneRepublic - Counting Stars",
+        "https://www.youtube.com/watch?v=VHoT4N43jK8 # Stromae - Alors on danse",
+        "https://www.youtube.com/watch?v=K5KAc5CoCuk # Indila - Dernière Danse",
+        "https://www.youtube.com/watch?v=8UVNT4wvIGY # Gotye - Somebody That I Used To Know"
+      ]
+    },
+    {
+      id: "night_drive",
+      name: "Night Drive & Phonk",
+      desc: "Deep bass, dark atmospheres & nocturnal driving soundtracks",
+      icon: "🏎️",
+      accent: "#f59e0b",
+      urls: [
+        "https://www.youtube.com/watch?v=sO_k8hXQ_8c # Mareux - The Perfect Girl",
+        "https://www.youtube.com/watch?v=MV_3Dpw-BRY # Kavinsky - Nightcall",
+        "https://www.youtube.com/watch?v=b4dKkK8Fj8c # Hensonn - Sahara"
+      ]
+    }
+  ];
 
-    if (rawLines.length === 0) {
-      setFailureMsg("Please provide at least one valid YouTube URL or playlist link.");
-      setIndexingStatus("error");
+  const executeYouTubeIndex = async (customUrls = null) => {
+    let rawList = [];
+    if (customUrls && Array.isArray(customUrls)) {
+      rawList = customUrls.map((l) => l.split("#")[0].trim()).filter((l) => l.length > 0);
+    } else {
+      rawList = youtubeUrlsText
+        .split("\n")
+        .map((line) => line.split("#")[0].trim())
+        .filter((line) => line.length > 0);
+    }
+
+    if (rawList.length === 0) {
+      setFailureMsg("Please enter at least one valid YouTube URL or playlist link.");
       return;
     }
 
     setIndexingStatus("processing");
     setFailureMsg("");
+    setIndexedResults([]);
 
     try {
       const res = await axios.post(`${API_BASE}/api/youtube/index`, {
-        urls: rawLines,
+        urls: rawList,
         maxTracks: parseInt(maxTracks, 10) || 5,
-        quickSampleOnly: quickSampleOnly,
+        quickSampleOnly,
       });
 
-      const data = res.data;
-      if (data && data.songs && data.songs.length > 0) {
-        setIndexedResults(data.songs);
+      if (res.data && res.data.songs) {
+        setIndexedResults(res.data.songs);
         setIndexingStatus("success");
       } else {
-        setFailureMsg("yt-dlp could not extract audio from the provided link(s). Please verify URLs.");
-        setIndexingStatus("error");
+        setIndexingStatus("idle");
       }
     } catch (err) {
-      console.error("YouTube ingestion failed:", err);
+      console.error("YouTube indexing failure", err);
       setIndexingStatus("error");
       setFailureMsg(
         err.response?.data?.error ||
           "YouTube ingestion failed. Verify yt-dlp is reachable and internet connectivity is active."
       );
     }
+  };
+
+  const loadCuratedPack = (pack) => {
+    setYoutubeUrlsText(pack.urls.join("\n"));
+    setMaxTracks(pack.urls.length);
   };
 
   const resetStaging = () => {
@@ -469,12 +518,63 @@ export default function FileUploader() {
                 </p>
               </div>
 
+              {/* Curated Music Packs */}
+              <div className="curated-packs-section">
+                <div className="packs-header">
+                  <span className="packs-title mono">CURATED SOURCE PACKS (VERIFIED YOUTUBE AUDIO)</span>
+                  <span className="packs-subtitle">Click to load into the ingestion queue or 1-click batch index</span>
+                </div>
+
+                <div className="curated-packs-grid">
+                  {CURATED_PACKS.map((pack) => (
+                    <div
+                      key={pack.id}
+                      className="pack-card"
+                      style={{ "--pack-accent": pack.accent }}
+                    >
+                      <div className="pack-card-header">
+                        <span className="pack-icon">{pack.icon}</span>
+                        <div className="pack-info">
+                          <span className="pack-name">{pack.name}</span>
+                          <span className="pack-count mono">{pack.urls.length} MASTER TRACKS</span>
+                        </div>
+                      </div>
+                      <p className="pack-desc">{pack.desc}</p>
+                      <div className="pack-actions">
+                        <button
+                          type="button"
+                          className="btn-pack-load mono"
+                          onClick={() => loadCuratedPack(pack)}
+                          disabled={indexingStatus === "processing"}
+                        >
+                          Load Queue
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-pack-run mono"
+                          onClick={() => {
+                            loadCuratedPack(pack);
+                            executeYouTubeIndex(pack.urls);
+                          }}
+                          disabled={indexingStatus === "processing"}
+                        >
+                          ⚡ Ingest Pack
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div className="youtube-form-group">
-                <label className="mono">YOUTUBE URLS OR PLAYLISTS (ONE PER LINE)</label>
+                <div className="form-label-row">
+                  <label className="mono">CUSTOM YOUTUBE URLS OR PLAYLISTS (ONE PER LINE)</label>
+                  <span className="form-label-hint mono">Supports # comments, direct links, and video IDs</span>
+                </div>
                 <textarea
                   className="youtube-textarea mono"
                   rows={4}
-                  placeholder={`https://www.youtube.com/watch?v=...\nhttps://www.youtube.com/playlist?list=...\nytsearch3:chopin nocturne`}
+                  placeholder={`https://www.youtube.com/watch?v=sVx1mJDeUjY # Mr.Kitty - After Dark\nhttps://www.youtube.com/watch?v=34Na4j8AVgA # The Weeknd - Starboy\nhttps://www.youtube.com/playlist?list=...`}
                   value={youtubeUrlsText}
                   onChange={(e) => setYoutubeUrlsText(e.target.value)}
                   disabled={indexingStatus === "processing"}
@@ -503,44 +603,8 @@ export default function FileUploader() {
                       onChange={(e) => setQuickSampleOnly(e.target.checked)}
                       disabled={indexingStatus === "processing"}
                     />
-                    <span>Turbo Mode (First 90s sample • 70% faster)</span>
+                    <span>Turbo Sample Mode (First 90s • 70% faster)</span>
                   </label>
-                </div>
-
-                <div className="preset-shortcuts">
-                  <span className="preset-label mono">PRESETS:</span>
-                  <button
-                    type="button"
-                    className="btn-preset mono"
-                    onClick={() => setYoutubeUrlsText("https://www.youtube.com/watch?v=9E6b3swbnWg")}
-                    disabled={indexingStatus === "processing"}
-                  >
-                    Chopin Nocturne
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-preset mono"
-                    onClick={() => setYoutubeUrlsText("https://www.youtube.com/watch?v=jv2WJMVPQi8")}
-                    disabled={indexingStatus === "processing"}
-                  >
-                    Beethoven 5th
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-preset mono"
-                    onClick={() => setYoutubeUrlsText("https://www.youtube.com/watch?v=u4_V98ZpBqA")}
-                    disabled={indexingStatus === "processing"}
-                  >
-                    Kevin MacLeod
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-preset mono"
-                    onClick={() => setYoutubeUrlsText("https://www.youtube.com/watch?v=4xDzrJKXOOY")}
-                    disabled={indexingStatus === "processing"}
-                  >
-                    Lofi Beats
-                  </button>
                 </div>
               </div>
 
@@ -548,9 +612,9 @@ export default function FileUploader() {
                 <button
                   type="button"
                   className="btn btn-primary start-indexing-btn"
-                  onClick={executeYouTubeIndex}
+                  onClick={() => executeYouTubeIndex()}
                 >
-                  ⚡ Download, Fingerprint & Index from YouTube
+                  ⚡ Download, Fingerprint & Index YouTube Queue
                 </button>
               )}
             </div>
