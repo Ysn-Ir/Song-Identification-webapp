@@ -72,8 +72,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get install -y --no-install-recommends mongodb-org-server \
     && rm -rf /var/lib/apt/lists/*
 
-# Install official yt-dlp binary (bust cache to ensure latest release)
-RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
+# Install official yt-dlp standalone Linux binary (includes bundled Python, no system Python 3.10 deprecation)
+RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux -o /usr/local/bin/yt-dlp \
     && chmod a+rx /usr/local/bin/yt-dlp \
     && /usr/local/bin/yt-dlp -U --no-check-certificates || true
 

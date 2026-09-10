@@ -232,7 +232,7 @@ public class YouTubeService {
                 cmd.add("--no-check-certificates");
                 cmd.add("--no-warnings");
                 cmd.add("--extractor-args");
-                cmd.add("youtube:player_client=default,-tv");
+                cmd.add("youtube:player_client=ios,android,mweb,web");
 
                 // Enforce --no-playlist UNLESS target is a recognized playlist or search query
                 if (!isPlaylistUrl(target) && !target.startsWith("ytsearch")) {
@@ -542,7 +542,7 @@ public class YouTubeService {
             List<String> cmd = List.of(
                     findYtDlpExecutable(),
                     "--flat-playlist",
-                    "--extractor-args", "youtube:player_client=default,-tv",
+                    "--extractor-args", "youtube:player_client=ios,android,mweb,web",
                     "--print", "%(id)s|||%(title)s|||%(channel)s",
                     "--max-downloads", "25",
                     target
@@ -559,9 +559,9 @@ public class YouTubeService {
                             String title = parts.length > 1 ? parts[1].trim() : "Unknown";
                             String channel = parts.length > 2 ? parts[2].trim() : "";
                             items.add(Map.of(
-                                    "title", title,
-                                    "artist", channel,
-                                    "query", "https://www.youtube.com/watch?v=" + id
+                                     "title", title,
+                                     "artist", channel,
+                                     "query", "https://www.youtube.com/watch?v=" + id
                             ));
                         }
                     }
@@ -586,6 +586,8 @@ public class YouTubeService {
     private String findYtDlpExecutable() {
         String[] candidates = {
                 ytDlpPath,
+                "/usr/local/bin/yt-dlp",
+                "/usr/bin/yt-dlp",
                 "C:\\Users\\khali\\AppData\\Roaming\\Python\\Python312\\Scripts\\yt-dlp.exe",
                 "C:\\Python312\\Scripts\\yt-dlp.exe",
                 "yt-dlp"
