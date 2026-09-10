@@ -234,6 +234,20 @@ public class YouTubeService {
                 cmd.add("--extractor-args");
                 cmd.add("youtube:player_client=ios,android,mweb,web");
 
+                String cookiesPath = findCookiesFile();
+                if (cookiesPath != null) {
+                    cmd.add("--cookies");
+                    cmd.add(cookiesPath);
+                    logService.log("AUTH", "Using YouTube session cookies from: " + cookiesPath);
+                }
+
+                String proxy = getProxyUrl();
+                if (proxy != null) {
+                    cmd.add("--proxy");
+                    cmd.add(proxy);
+                    logService.log("PROXY", "Routing requests through proxy: " + proxy);
+                }
+
                 // Enforce --no-playlist UNLESS target is a recognized playlist or search query
                 if (!isPlaylistUrl(target) && !target.startsWith("ytsearch")) {
                     cmd.add("--no-playlist");
@@ -294,7 +308,11 @@ public class YouTubeService {
 
                 if (printOutputs.isEmpty()) {
                     String errDetails = errBuf.toString().trim();
-                    logService.log("WARN", "yt-dlp produced no stream output for: " + target + " (code " + exitCode + ")" + (errDetails.isEmpty() ? "" : " - Stderr: " + errDetails));
+                    if (errDetails.contains("Failed to extract any player response") || errDetails.contains("Sign in to confirm")) {
+                        logService.log("ERROR", "YouTube blocked this cloud server IP (Render datacenter). Please use the 'Local Audio Files (WAV/MP3)' tab to upload tracks directly, or provide cookies.txt in Render Secret Files.");
+                    } else {
+                        logService.log("WARN", "yt-dlp produced no stream output for: " + target + " (code " + exitCode + ")" + (errDetails.isEmpty() ? "" : " - Stderr: " + errDetails));
+                    }
                     continue;
                 }
 
@@ -539,14 +557,26 @@ public class YouTubeService {
         if (isPlaylistUrl(target)) {
             result.put("type", "youtube_playlist");
             result.put("sourceUrl", target);
-            List<String> cmd = List.of(
-                    findYtDlpExecutable(),
-                    "--flat-playlist",
-                    "--extractor-args", "youtube:player_client=ios,android,mweb,web",
-                    "--print", "%(id)s|||%(title)s|||%(channel)s",
-                    "--max-downloads", "25",
-                    target
-            );
+            List<String> cmd = new ArrayList<>();
+            cmd.add(findYtDlpExecutable());
+            cmd.add("--flat-playlist");
+            cmd.add("--extractor-args");
+            cmd.add("youtube:player_client=ios,android,mweb,web");
+            String cookiesPath = findCookiesFile();
+            if (cookiesPath != null) {
+                cmd.add("--cookies");
+                cmd.add(cookiesPath);
+            }
+            String proxy = getProxyUrl();
+            if (proxy != null) {
+                cmd.add("--proxy");
+                cmd.add(proxy);
+            }
+            cmd.add("--print");
+            cmd.add("%(id)s|||%(title)s|||%(channel)s");
+            cmd.add("--max-downloads");
+            cmd.add("25");
+            cmd.add(target);
             List<Map<String, String>> items = new ArrayList<>();
             try {
                 Process proc = new ProcessBuilder(cmd).redirectErrorStream(true).start();
@@ -581,6 +611,37 @@ public class YouTubeService {
         result.put("count", 1);
         result.put("tracks", List.of(Map.of("title", target, "artist", "", "query", target)));
         return result;
+    }
+
+    private String findCookiesFile() {
+        String[] candidates = {
+                System.getenv("YTDL_COOKIES_PATH"),
+                System.getenv("COOKIES_FILE"),
+                "/etc/secrets/cookies.txt",
+                "cookies.txt",
+                uploadDir + "/cookies.txt"
+        };
+        for (String c : candidates) {
+            if (c == null || c.isBlank()) continue;
+            try {
+                File f = new File(c);
+                if (f.exists() && f.length() > 0) {
+                    return f.getAbsolutePath();
+                }
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
+    private String getProxyUrl() {
+        String proxy = System.getenv("YTDL_PROXY");
+        if (proxy == null || proxy.isBlank()) {
+            proxy = System.getenv("HTTP_PROXY");
+        }
+        if (proxy == null || proxy.isBlank()) {
+            proxy = System.getenv("HTTPS_PROXY");
+        }
+        return (proxy != null && !proxy.isBlank()) ? proxy.trim() : null;
     }
 
     private String findYtDlpExecutable() {
