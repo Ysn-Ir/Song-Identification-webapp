@@ -231,6 +231,8 @@ public class YouTubeService {
                 cmd.add("4"); // 4 concurrent connections
                 cmd.add("--no-check-certificates");
                 cmd.add("--no-warnings");
+                cmd.add("--extractor-args");
+                cmd.add("youtube:player_client=default,-tv");
 
                 // Enforce --no-playlist UNLESS target is a recognized playlist or search query
                 if (!isPlaylistUrl(target) && !target.startsWith("ytsearch")) {
@@ -540,6 +542,7 @@ public class YouTubeService {
             List<String> cmd = List.of(
                     findYtDlpExecutable(),
                     "--flat-playlist",
+                    "--extractor-args", "youtube:player_client=default,-tv",
                     "--print", "%(id)s|||%(title)s|||%(channel)s",
                     "--max-downloads", "25",
                     target

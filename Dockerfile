@@ -55,11 +55,12 @@ RUN sh ./mvnw clean package -DskipTests -B
 # ----------------------------------------------------
 FROM eclipse-temurin:21-jre-jammy
 
-# Install runtime dependencies: ffmpeg, python3, curl, libfftw3, libsndfile, gnupg, ca-certificates
+# Install runtime dependencies: ffmpeg, python3, nodejs (JS runtime for yt-dlp), curl, libfftw3, libsndfile
 # Also install MongoDB 7.0 Community Server so no external database account is required
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     python3 \
+    nodejs \
     curl \
     gnupg \
     ca-certificates \
@@ -71,9 +72,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get install -y --no-install-recommends mongodb-org-server \
     && rm -rf /var/lib/apt/lists/*
 
-# Install official yt-dlp binary
+# Install official yt-dlp binary (bust cache to ensure latest release)
 RUN curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp \
-    && chmod a+rx /usr/local/bin/yt-dlp
+    && chmod a+rx /usr/local/bin/yt-dlp \
+    && /usr/local/bin/yt-dlp -U --no-check-certificates || true
 
 WORKDIR /app
 

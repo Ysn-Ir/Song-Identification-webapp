@@ -17,5 +17,9 @@ else
     echo ">> Using external MongoDB connection: $MONGODB_URI"
 fi
 
+# Keep yt-dlp up-to-date against YouTube API changes
+echo ">> Checking for yt-dlp updates..."
+/usr/local/bin/yt-dlp -U --no-check-certificates || true
+
 # Execute Spring Boot application (optimized for Render 512MB container with SerialGC)
 exec java -Xmx220m -Xms64m -XX:+UseSerialGC -jar /app/app.jar
