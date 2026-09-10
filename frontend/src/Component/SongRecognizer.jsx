@@ -322,45 +322,6 @@ export default function SongRecognizer() {
         </div>
       </div>
 
-      {/* Quick Test Bench: Try Real Master Clips */}
-      <div className="demo-bench-container">
-        <div className="demo-bench-header">
-          <span className="bench-title">Interactive Reference Clips</span>
-          <span className="bench-subtitle mono">Select a sample to hear and identify instantly</span>
-        </div>
-        <div className="demo-bench-grid">
-          {DEMO_CLIPS.map((clip) => (
-            <div
-              key={clip.id}
-              className={`demo-card ${selectedFile?.name?.includes(clip.id) ? "selected" : ""}`}
-              style={{ "--card-accent": clip.accent }}
-            >
-              <div className="demo-card-top">
-                <span className="demo-genre mono">{clip.genre}</span>
-                <span className="demo-dur mono">{clip.duration}</span>
-              </div>
-              <div className="demo-card-body">
-                <div className="demo-title">{clip.title}</div>
-                <div className="demo-artist">{clip.artist}</div>
-              </div>
-              <div className="demo-card-actions">
-                <button
-                  type="button"
-                  className="demo-btn-identify"
-                  onClick={() => loadAndIdentifyDemoTrack(clip)}
-                  disabled={status === "analyzing" || isListening || isLoadingDemo}
-                >
-                  <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
-                    <polygon points="5 3 19 12 5 21 5 3"/>
-                  </svg>
-                  Identify
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Mode Selector Tabs */}
       <div className="console-mode-selector">
         <button

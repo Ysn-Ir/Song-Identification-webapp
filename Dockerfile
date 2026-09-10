@@ -92,6 +92,7 @@ RUN chmod +x /app/docker-entrypoint.sh && mkdir -p /tmp/shazam_uploads /data/db 
 ENV PORT=8080 \
     SHAZAM_EXECUTABLE_PATH=/app/cpp_engine/shazam \
     FFMPEG_PATH=/usr/bin/ffmpeg \
+    YT_DLP_PATH=/usr/local/bin/yt-dlp \
     UPLOAD_DIR=/tmp/shazam_uploads \
     MONGODB_URI=mongodb://127.0.0.1:27017/shazamdb
 

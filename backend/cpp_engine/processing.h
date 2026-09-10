@@ -14,9 +14,9 @@ const int  SAMPLE_RATE = 16000;
 const int  MAX_FREQ = 5000;
 
 // looking at MAX_AHEAD_TIME frames looking for peaks to link to 
-const int MAX_AHEAD_TIME = 50;
+const int MAX_AHEAD_TIME = 100;
 // maximum peaks to link to 
-const int  MAX_PEAKS = 5;
+const int  MAX_PEAKS = 8;
 
 
 struct Peak {

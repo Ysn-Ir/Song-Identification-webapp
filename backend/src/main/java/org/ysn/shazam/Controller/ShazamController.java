@@ -269,30 +269,28 @@ public class ShazamController {
                     ? entries.subList(0, 8000)
                     : entries;
 
-            // Filter out sub-bass rumble (< 125 Hz) that causes massive cross-song noise collisions,
-            // and cap to 1,500 unique hashes to guarantee sub-second MongoDB queries.
+            // Collect unique hashes for MongoDB query
             Set<Long> uniqueHashes = queryEntries.stream()
                     .map(AudioHashService.HashEntryDTO::getHash)
-                    .filter(h -> {
-                        long f1 = (h >> 32) & 0xffffL;
-                        long f2 = (h >> 16) & 0xffffL;
-                        return f1 >= 8 && f2 >= 8;
-                    })
-                    .limit(1500)
                     .collect(Collectors.toSet());
 
-            // Bulk fetch matching hashes from MongoDB using compound index
+            // Bulk fetch matching hashes from MongoDB
             List<AudioHash> allMatches = audioHashRepository.findByHashIn(uniqueHashes);
-            log.info("Recognition: {} hashes ({} unique) -> {} MongoDB hits across {} candidate songs",
-                    entries.size(), uniqueHashes.size(), allMatches.size(), allMatches.stream().map(AudioHash::getSongId).distinct().count());
+            log.info("Recognition: {} hashes ({} unique) -> {} MongoDB hits",
+                    entries.size(), uniqueHashes.size(), allMatches.size());
 
+            // Build lookup: hash -> list of DB occurrences
             Map<Long, List<AudioHash>> hashToOccurrences = new HashMap<>();
             for (AudioHash match : allMatches) {
                 hashToOccurrences.computeIfAbsent(match.getHash(), k -> new ArrayList<>()).add(match);
             }
 
-            // Time-coherency scoring algorithm with jitter smoothing (+-1 frame window)
+            // Classic Shazam time-offset scoring: for each (query hash, DB hash) pair,
+            // compute offset = dbT1 - queryT1. The correct song will have many hashes
+            // aligned at the exact same offset.
             Map<Long, Map<Integer, Integer>> matchScores = new HashMap<>();
+            long bestSongId = -1;
+            int highestScore = 0;
 
             for (AudioHashService.HashEntryDTO entry : queryEntries) {
                 long hash = entry.getHash();
@@ -304,56 +302,30 @@ public class ShazamController {
                     int dbT1 = match.getT1().intValue();
                     int offset = dbT1 - t1;
 
-                    matchScores.computeIfAbsent(songId, k -> new HashMap<>());
-                    Map<Integer, Integer> offsetMap = matchScores.get(songId);
-                    offsetMap.put(offset, offsetMap.getOrDefault(offset, 0) + 1);
+                    Map<Integer, Integer> offsetMap = matchScores.computeIfAbsent(songId, k -> new HashMap<>());
+                    int newCount = offsetMap.getOrDefault(offset, 0) + 1;
+                    offsetMap.put(offset, newCount);
+
+                    if (newCount > highestScore) {
+                        highestScore = newCount;
+                        bestSongId = songId;
+                    }
                 }
             }
 
-            // Coherent cluster alignment with Signal-to-Noise Ratio (SNR) filtering:
-            // True matches produce a sharp, tight spike at a single time offset.
-            // Bloated noise songs (with 300,000+ hashes) produce scattered random collisions across all offsets.
-            long bestSongId = -1;
-            int highestScore = 0;
-            double bestSignificance = 0.0;
+            log.info("Recognition result: bestSongId={}, confidence={}, uniqueQueryHashes={}, dbHits={}",
+                    bestSongId, highestScore, uniqueHashes.size(), allMatches.size());
 
-            for (Map.Entry<Long, Map<Integer, Integer>> songEntry : matchScores.entrySet()) {
-                long songId = songEntry.getKey();
-                Map<Integer, Integer> offsetMap = songEntry.getValue();
+            // Log top-5 candidates for diagnostic purposes
+            matchScores.entrySet().stream()
+                    .map(e -> Map.entry(e.getKey(), e.getValue().values().stream().mapToInt(Integer::intValue).max().orElse(0)))
+                    .sorted((a, b) -> b.getValue() - a.getValue())
+                    .limit(5)
+                    .forEach(e -> log.info("  Candidate songId={} maxAligned={}", e.getKey(), e.getValue()));
 
-                int totalSongMatches = 0;
-                for (int count : offsetMap.values()) {
-                    totalSongMatches += count;
-                }
-
-                int maxClusterForSong = 0;
-                for (Map.Entry<Integer, Integer> offsetEntry : offsetMap.entrySet()) {
-                    int centerOffset = offsetEntry.getKey();
-                    int clusterScore = 0;
-                    for (int delta = -1; delta <= 1; delta++) {
-                        clusterScore += offsetMap.getOrDefault(centerOffset + delta, 0);
-                    }
-                    if (clusterScore > maxClusterForSong) {
-                        maxClusterForSong = clusterScore;
-                    }
-                }
-
-                // Concentration ratio: Fraction of this song's matched hashes aligned at the exact same offset.
-                // For noise/giant songs: concentration is < 1% (diffuse noise).
-                // For a true match: concentration is > 2% - 40% (concentrated signal).
-                double concentration = totalSongMatches > 0 ? (double) maxClusterForSong / (double) totalSongMatches : 0.0;
-                double significance = maxClusterForSong * concentration;
-
-                if (maxClusterForSong >= 4 && concentration >= 0.015 && significance > bestSignificance) {
-                    bestSignificance = significance;
-                    highestScore = maxClusterForSong;
-                    bestSongId = songId;
-                }
-            }
-
-            log.info("Recognition evaluated: bestSongId={}, confidence={}, significance={}", bestSongId, highestScore, bestSignificance);
-
-            // A threshold of >= 3 coherently aligned hashes ensures noise rejection
+            // Require at least 3 coherently aligned hashes for a valid match.
+            // With short mic captures (5-15s), 4 was too strict and caused false negatives.
+            // Time-offset alignment is highly discriminative, so 3 is safe against false positives.
             if (bestSongId != -1 && highestScore >= 3) {
                 Optional<Song> songOpt = songRepository.findById(bestSongId);
                 if (songOpt.isPresent()) {

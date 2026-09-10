@@ -48,6 +48,9 @@ public class YouTubeService {
     @Value("${yt-dlp.executable.path:yt-dlp}")
     private String ytDlpPath;
 
+    @Value("${ffmpeg.executable.path:ffmpeg}")
+    private String ffmpegPath;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final HttpClient httpClient = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
@@ -253,6 +256,18 @@ public class YouTubeService {
                 Process process = pb.start();
 
                 List<String> printOutputs = new ArrayList<>();
+                StringBuilder errBuf = new StringBuilder();
+                Thread errThread = new Thread(() -> {
+                    try (BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                        String errLine;
+                        while ((errLine = errReader.readLine()) != null) {
+                            if (errBuf.length() < 1000) {
+                                errBuf.append(errLine).append(" ");
+                            }
+                        }
+                    } catch (Exception ignored) {}
+                });
+                errThread.start();
 
                 // Read output
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
@@ -272,10 +287,12 @@ public class YouTubeService {
                 }
 
                 int exitCode = process.waitFor();
+                try { errThread.join(2000); } catch (InterruptedException ignored) {}
                 long downloadDuration = System.currentTimeMillis() - downloadStart;
 
                 if (printOutputs.isEmpty()) {
-                    logService.log("WARN", "yt-dlp produced no stream output for: " + target + " (code " + exitCode + ")");
+                    String errDetails = errBuf.toString().trim();
+                    logService.log("WARN", "yt-dlp produced no stream output for: " + target + " (code " + exitCode + ")" + (errDetails.isEmpty() ? "" : " - Stderr: " + errDetails));
                     continue;
                 }
 
@@ -326,6 +343,11 @@ public class YouTubeService {
                         ffmpegCmd.add("-t");
                         ffmpegCmd.add("90"); // Turbo mode: 90 seconds
                     }
+                    // EBU R128 loudness normalization: ensures all indexed songs
+                    // hit the same loudness level (-14 LUFS) so fingerprints are
+                    // consistent with recognition queries (which are also normalized).
+                    ffmpegCmd.add("-af");
+                    ffmpegCmd.add("loudnorm=I=-14:TP=-1:LRA=11");
                     ffmpegCmd.add("-ar");
                     ffmpegCmd.add("16000");
                     ffmpegCmd.add("-ac");
@@ -524,7 +546,7 @@ public class YouTubeService {
             );
             List<Map<String, String>> items = new ArrayList<>();
             try {
-                Process proc = new ProcessBuilder(cmd).start();
+                Process proc = new ProcessBuilder(cmd).redirectErrorStream(true).start();
                 try (BufferedReader r = new BufferedReader(new InputStreamReader(proc.getInputStream()))) {
                     String line;
                     while ((line = r.readLine()) != null) {
@@ -561,14 +583,15 @@ public class YouTubeService {
     private String findYtDlpExecutable() {
         String[] candidates = {
                 ytDlpPath,
-                "yt-dlp",
                 "C:\\Users\\khali\\AppData\\Roaming\\Python\\Python312\\Scripts\\yt-dlp.exe",
-                "C:\\Python312\\Scripts\\yt-dlp.exe"
+                "C:\\Python312\\Scripts\\yt-dlp.exe",
+                "yt-dlp"
         };
         for (String c : candidates) {
+            if (c == null || c.isBlank()) continue;
             try {
                 File f = new File(c);
-                if (f.exists() && f.canExecute()) {
+                if (f.exists()) {
                     return f.getAbsolutePath();
                 }
             } catch (Exception ignored) {}
@@ -578,14 +601,17 @@ public class YouTubeService {
 
     private String findFfmpegExecutable() {
         String[] candidates = {
-                "ffmpeg",
+                ffmpegPath,
+                "C:\\Users\\khali\\AppData\\Local\\Microsoft\\WinGet\\Links\\ffmpeg.exe",
                 "C:\\Users\\khali\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.0.1-full_build\\bin\\ffmpeg.exe",
+                "ffmpeg",
                 "/usr/bin/ffmpeg"
         };
         for (String c : candidates) {
+            if (c == null || c.isBlank()) continue;
             try {
                 File f = new File(c);
-                if (f.exists() && f.canExecute()) {
+                if (f.exists()) {
                     return f.getAbsolutePath();
                 }
             } catch (Exception ignored) {}
@@ -593,3 +619,4 @@ public class YouTubeService {
         return "ffmpeg";
     }
 }
+

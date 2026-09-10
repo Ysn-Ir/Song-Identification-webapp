@@ -17,20 +17,22 @@ public class ShazamService {
     @Value("${shazam.executable.path:C:/Users/khali/source/repos/shazam/x64/Debug/shazam.exe}")
     private String exePath;
 
-    @Value("${ffmpeg.path:ffmpeg}")
+    @Value("${ffmpeg.executable.path:${ffmpeg.path:ffmpeg}}")
     private String configuredFfmpegPath;
 
     public String findFfmpegExecutable() {
         String[] candidates = {
                 configuredFfmpegPath,
-                "ffmpeg",
+                "C:\\Users\\khali\\AppData\\Local\\Microsoft\\WinGet\\Links\\ffmpeg.exe",
                 "C:\\Users\\khali\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-8.0.1-full_build\\bin\\ffmpeg.exe",
+                "ffmpeg",
                 "/usr/bin/ffmpeg"
         };
         for (String c : candidates) {
+            if (c == null || c.isBlank()) continue;
             try {
                 File f = new File(c);
-                if (f.exists() && f.canExecute()) {
+                if (f.exists()) {
                     return f.getAbsolutePath();
                 }
             } catch (Exception ignored) {}
@@ -63,6 +65,12 @@ public class ShazamService {
             cmd.add("-y");
             cmd.add("-i");
             cmd.add(inputFile.getAbsolutePath());
+            // EBU R128 loudness normalization: target -14 LUFS, true peak -1 dBTP, loudness range 11 LU
+            // This is critical: ensures both indexed songs and mic captures produce
+            // the same amplitude levels so the C++ peak detector (threshold 2.0) finds
+            // consistent peaks across all audio sources.
+            cmd.add("-af");
+            cmd.add("loudnorm=I=-14:TP=-1:LRA=11");
             cmd.add("-ar");
             cmd.add("16000");
             cmd.add("-ac");
@@ -77,14 +85,14 @@ public class ShazamService {
             }
             int code = proc.waitFor();
             if (code == 0 && normalizedFile.exists() && normalizedFile.length() > 100) {
-                log.info("Audio normalized successfully: {} -> {}", inputPath, normalizedFile.getAbsolutePath());
+                log.info("Audio loudness-normalized (EBU R128 -14 LUFS) successfully: {} -> {}", inputPath, normalizedFile.getAbsolutePath());
                 return normalizedFile.getAbsolutePath();
             } else {
-                log.warn("FFmpeg normalization returned exit code {}, falling back to original: {}", code, inputPath);
+                log.warn("FFmpeg loudnorm returned exit code {}, falling back to original: {}", code, inputPath);
                 return inputPath;
             }
         } catch (Exception e) {
-            log.warn("FFmpeg normalization error, falling back to original: {}", e.getMessage());
+            log.warn("FFmpeg loudnorm error, falling back to original: {}", e.getMessage());
             return inputPath;
         }
     }

@@ -19,55 +19,18 @@ std::vector<std::vector<double>> Spectogram(std::vector<double>& audio, FFT& fft
     return spectogram;
 }
 // Getting peak amps in 3x3 surrounding of a spectrogram (frequency f-1, f, f+1 and time t-1, t, t+1)
-// Enhanced with adaptive energy floor and dynamic fallback for low-volume ambient mic captures
 std::vector<Peak> findPeaks(const std::vector<std::vector<double>>& spectrogram, double threshold) {
     std::vector<Peak> peaks;
     if (spectrogram.empty() || spectrogram[0].empty()) return peaks;
 
-    // 1. Determine peak dynamic range across the spectrogram
-    double maxMag = 0.0;
-    for (size_t t = 0; t < spectrogram.size(); t++) {
-        for (size_t f = 0; f < spectrogram[t].size(); f++) {
-            if (spectrogram[t][f] > maxMag) maxMag = spectrogram[t][f];
-        }
-    }
-
-    // 2. Adaptive threshold: for studio masters (maxMag > 8.0), enforce requested threshold (e.g. 2.0).
-    // For quiet ambient mic audio (e.g. maxMag ~ 0.5), automatically scale threshold down
-    // so salient peaks are cleanly discovered regardless of input gain.
-    double effectiveThreshold = threshold;
-    if (maxMag > 0.01 && maxMag < threshold * 2.5) {
-        effectiveThreshold = std::max(0.15, maxMag * 0.25);
-    }
-
     for (int t = 1; t < (int)spectrogram.size() - 1; t++) {
         for (int f = 1; f < (int)spectrogram[t].size() - 1; f++) {
             double mag = spectrogram[t][f];
-            if (mag > effectiveThreshold &&
+            if (mag > threshold &&
                 mag > spectrogram[t][f - 1] && mag > spectrogram[t][f + 1] &&
                 mag > spectrogram[t - 1][f] && mag > spectrogram[t - 1][f - 1] && mag > spectrogram[t - 1][f + 1] &&
                 mag > spectrogram[t + 1][f - 1] && mag > spectrogram[t + 1][f + 1] && mag > spectrogram[t + 1][f]) {
                 peaks.push_back({ t, f, mag });
-            }
-        }
-    }
-
-    // 3. Fallback: If audio has content but yielded very sparse peaks (< 10 peaks/sec),
-    // relax threshold down to 10% of maxMag to ensure adequate constellation points
-    double durationSec = (double)spectrogram.size() * (WINDOW_SIZE - OVERLAPPING_SIZE) / SAMPLE_RATE;
-    size_t minExpectedPeaks = (size_t)(durationSec * 10.0);
-    if (peaks.size() < minExpectedPeaks && maxMag > 0.02) {
-        double lowerThresh = std::max(0.05, maxMag * 0.10);
-        peaks.clear();
-        for (int t = 1; t < (int)spectrogram.size() - 1; t++) {
-            for (int f = 1; f < (int)spectrogram[t].size() - 1; f++) {
-                double mag = spectrogram[t][f];
-                if (mag > lowerThresh &&
-                    mag > spectrogram[t][f - 1] && mag > spectrogram[t][f + 1] &&
-                    mag > spectrogram[t - 1][f] && mag > spectrogram[t - 1][f - 1] && mag > spectrogram[t - 1][f + 1] &&
-                    mag > spectrogram[t + 1][f - 1] && mag > spectrogram[t + 1][f + 1] && mag > spectrogram[t + 1][f]) {
-                    peaks.push_back({ t, f, mag });
-                }
             }
         }
     }

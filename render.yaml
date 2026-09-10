@@ -15,5 +15,7 @@ services:
         value: /app/cpp_engine/shazam
       - key: FFMPEG_PATH
         value: /usr/bin/ffmpeg
+      - key: YT_DLP_PATH
+        value: /usr/local/bin/yt-dlp
       - key: UPLOAD_DIR
         value: /tmp/shazam_uploads
