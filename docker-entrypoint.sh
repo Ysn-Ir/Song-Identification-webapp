@@ -5,7 +5,8 @@ set -e
 if [ -z "$MONGODB_URI" ] || [[ "$MONGODB_URI" == *"localhost"* ]] || [[ "$MONGODB_URI" == *"127.0.0.1"* ]]; then
     echo ">> Starting internal MongoDB daemon (127.0.0.1:27017)..."
     mkdir -p /data/db /var/log
-    if ! mongod --fork --logpath /var/log/mongod.log --bind_ip 127.0.0.1 --wiredTigerCacheSizeGB 0.15; then
+    touch /var/log/mongod.log
+    if ! mongod --fork --logpath /var/log/mongod.log --bind_ip 127.0.0.1 --wiredTigerCacheSizeGB 0.25; then
         echo ">> mongod failed to start. Printing log:"
         cat /var/log/mongod.log
         exit 1
@@ -16,5 +17,5 @@ else
     echo ">> Using external MongoDB connection: $MONGODB_URI"
 fi
 
-# Execute Spring Boot application (tuned for Render 512MB container)
-exec java -Xmx280m -Xms128m -jar /app/app.jar
+# Execute Spring Boot application (optimized for Render 512MB container with SerialGC)
+exec java -Xmx220m -Xms64m -XX:+UseSerialGC -jar /app/app.jar
