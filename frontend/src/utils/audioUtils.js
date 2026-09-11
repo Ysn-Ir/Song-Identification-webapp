@@ -219,11 +219,11 @@ export function renderStudioVisualizer(canvas, analyser, mode = 'spectrum') {
           peakCaps[i] = Math.max(0, peakCaps[i] - peakDecay);
         }
 
-        // Electric cyan to neon indigo gradient
+        // Pacific ocean wave crest gradient: ocean cyan to azure to deep marine teal
         const grad = ctx.createLinearGradient(0, y, 0, height);
-        grad.addColorStop(0, '#00f0ff');
-        grad.addColorStop(0.5, '#0088ff');
-        grad.addColorStop(1, '#3b82f6');
+        grad.addColorStop(0, '#00d2ff');
+        grad.addColorStop(0.5, '#0284c7');
+        grad.addColorStop(1, '#0d9488');
 
         ctx.fillStyle = grad;
         ctx.fillRect(x, y, barWidth, barHeight);

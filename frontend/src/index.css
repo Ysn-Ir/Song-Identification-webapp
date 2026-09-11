@@ -1,42 +1,72 @@
-/* index.css - Shazam Acoustic Studio Design System */
+/* index.css - Pacific Fjord & Alpine Ocean Waves Design System */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap');
+
 :root {
-  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Theme Colors - Hardware Studio Tone */
-  --bg-main: #090c12;
-  --bg-surface: #101522;
-  --bg-surface-elevated: #161c2d;
-  --bg-surface-hover: #1d253b;
-  --bg-input: #0c0f17;
+  /* Theme Canvas - Abyssal Ocean & Alpine Night */
+  --bg-main: #020813;
+  --bg-ocean-deep: #04101e;
+  --bg-surface: rgba(6, 22, 38, 0.72);
+  --bg-surface-elevated: rgba(10, 31, 54, 0.82);
+  --bg-surface-hover: rgba(15, 42, 72, 0.88);
+  --bg-surface-active: rgba(18, 52, 88, 0.92);
+  --bg-input: rgba(4, 14, 26, 0.85);
 
-  --border-subtle: rgba(255, 255, 255, 0.07);
-  --border-focus: #00d4ff;
-  --border-hover: rgba(0, 212, 255, 0.3);
+  /* Oceanic & Alpine Glacial Palette */
+  --ocean-cyan: #00d2ff;
+  --ocean-azure: #0284c7;
+  --ocean-deep-blue: #0369a1;
+  --ocean-marine-teal: #0d9488;
+  --ocean-seafoam: #06d6a0;
+  --ocean-glacial-white: #f0fdfa;
+  --alpine-mist: #94a3b8;
+  --alpine-shadow: #1e293b;
 
-  /* Studio Accents */
-  --shazam-blue: #0070f3;
-  --shazam-cyan: #00e5ff;
-  --shazam-glow: rgba(0, 112, 243, 0.25);
-  --cyan-glow: rgba(0, 229, 255, 0.25);
+  /* Signature Ocean Wave Gradients */
+  --gradient-ocean-wave: linear-gradient(135deg, #0284c7 0%, #00d2ff 50%, #06d6a0 100%);
+  --gradient-ocean-button: linear-gradient(135deg, #0284c7 0%, #00b4d8 100%);
+  --gradient-ocean-hover: linear-gradient(135deg, #0369a1 0%, #00d2ff 100%);
+  --gradient-glacial-sheen: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%);
+  --gradient-tide-glow: radial-gradient(circle, rgba(0, 210, 255, 0.35) 0%, rgba(2, 132, 199, 0.15) 50%, transparent 70%);
 
-  --meter-green: #10b981;
-  --meter-yellow: #f59e0b;
-  --meter-red: #ef4444;
+  /* Micro-Borders with Glacial Precision */
+  --border-subtle: rgba(56, 189, 248, 0.12);
+  --border-medium: rgba(56, 189, 248, 0.22);
+  --border-highlight: rgba(255, 255, 255, 0.25);
+  --border-wave-glow: rgba(0, 210, 255, 0.45);
+  --border-teal-glow: rgba(6, 214, 160, 0.4);
 
-  /* Typography */
+  /* Typography Hierarchy */
   --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-dim: #475569;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
 
-  /* Dimensions */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  /* Radii */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 32px;
   --radius-full: 9999px;
+
+  /* Glassmorphic Sea-Glass Tokens */
+  --glass-bg: rgba(6, 22, 38, 0.72);
+  --glass-blur: blur(24px) saturate(180%);
+  --glass-border: 1px solid rgba(56, 189, 248, 0.15);
+  --glass-inner-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+
+  /* Audio & Meter Constants */
+  --shazam-blue: #0284c7;
+  --shazam-cyan: #00d2ff;
+  --shazam-glow: rgba(0, 210, 255, 0.4);
+  --cyan-glow: rgba(0, 210, 255, 0.35);
+  --meter-green: #06d6a0;
+  --meter-yellow: #f59e0b;
+  --meter-red: #f43f5e;
 }
 
 * {
@@ -45,121 +75,182 @@
   padding: 0;
 }
 
+html {
+  color-scheme: dark;
+}
+
 body {
   background-color: var(--bg-main);
-  background-image: 
-    radial-gradient(circle at 50% 0%, rgba(0, 112, 243, 0.12) 0%, transparent 60%),
-    radial-gradient(circle at 100% 100%, rgba(0, 229, 255, 0.06) 0%, transparent 50%),
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 100% 100%, 100% 100%, 32px 32px, 32px 32px;
   color: var(--text-primary);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
   overflow-x: hidden;
+  position: relative;
 }
 
-h1, h2, h3, h4 {
+/* Layer 1: Living Ocean Swell & Mountain Mist Background */
+body::before {
+  content: '';
+  position: fixed;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  z-index: -2;
+  background: 
+    radial-gradient(ellipse 70% 50% at 50% 20%, rgba(2, 132, 199, 0.22) 0%, transparent 60%),
+    radial-gradient(circle 800px at 80% 40%, rgba(0, 210, 255, 0.14) 0%, transparent 55%),
+    radial-gradient(circle 900px at 20% 70%, rgba(13, 148, 136, 0.16) 0%, transparent 60%),
+    radial-gradient(circle 600px at 50% 90%, rgba(6, 214, 160, 0.12) 0%, transparent 50%);
+  animation: oceanSwellDrift 30s ease-in-out infinite alternate;
+  pointer-events: none;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+@keyframes oceanSwellDrift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-3%, 3%) scale(1.05);
+  }
+  100% {
+    transform: translate(2%, -2%) scale(0.97);
+  }
+}
+
+/* Layer 2: Alpine Mountain Ridge & Ocean Contour Waves Overlay */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: 
+    /* Topographic contour wave lines */
+    repeating-linear-gradient(
+      175deg,
+      transparent,
+      transparent 70px,
+      rgba(56, 189, 248, 0.02) 71px,
+      transparent 72px
+    ),
+    /* Deep oceanic vignette */
+    radial-gradient(ellipse at center, transparent 35%, rgba(2, 8, 19, 0.8) 100%);
+  pointer-events: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   font-weight: 700;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.03em;
   color: var(--text-primary);
 }
 
 .mono {
   font-family: var(--font-mono);
-  font-feature-settings: 'tnum';
+  font-feature-settings: 'tnum' on, 'zero' on;
 }
 
-/* Layout */
-.app-container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-.page-content {
-  flex: 1;
-  max-width: 1060px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 32px 24px 72px;
-}
-
-/* Studio Surface Cards */
+/* Glacial Sea-Glass Card Component */
 .studio-card {
   background: var(--bg-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  border-radius: var(--radius-md);
+  box-shadow: 
+    0 16px 40px -8px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(56, 189, 248, 0.08),
+    var(--glass-inner-highlight);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
 }
 
 .studio-card:hover {
-  border-color: var(--border-hover);
+  border-color: rgba(0, 210, 255, 0.35);
+  box-shadow: 
+    0 22px 55px -10px rgba(0, 0, 0, 0.8),
+    0 0 30px rgba(0, 210, 255, 0.15),
+    var(--glass-inner-highlight);
 }
 
-/* Professional Buttons */
+/* Oceanic Action Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   font-family: var(--font-heading);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
   font-weight: 600;
   padding: 10px 20px;
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: none;
+  outline: none;
   text-decoration: none;
-  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  user-select: none;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .btn-primary {
-  background: linear-gradient(180deg, #0088ff 0%, #0066cc 100%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--gradient-ocean-button);
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(0, 112, 243, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: 
+    0 4px 20px rgba(0, 210, 255, 0.35),
+    0 2px 6px rgba(2, 132, 199, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(180deg, #1a95ff 0%, #0077e6 100%);
+  background: var(--gradient-ocean-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(0, 112, 243, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-}
-
-.btn-primary:active:not(:disabled) {
-  transform: translateY(0);
+  box-shadow: 
+    0 8px 28px rgba(0, 210, 255, 0.55),
+    0 4px 12px rgba(2, 132, 199, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 .btn-secondary {
-  background: var(--bg-surface-elevated);
-  border: 1px solid var(--border-subtle);
+  background: rgba(14, 42, 70, 0.6);
+  backdrop-filter: blur(12px);
   color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--bg-surface-hover);
-  border-color: var(--border-hover);
+  background: rgba(20, 56, 92, 0.75);
+  border-color: rgba(0, 210, 255, 0.45);
   color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 210, 255, 0.2);
 }
 
 .btn-demo {
-  background: rgba(0, 229, 255, 0.08);
-  border: 1px solid rgba(0, 229, 255, 0.25);
-  color: var(--shazam-cyan);
-  font-family: var(--font-mono);
+  background: rgba(0, 210, 255, 0.12);
+  border: 1px solid rgba(0, 210, 255, 0.35);
+  color: #e0f2fe;
   font-size: 0.8rem;
-  padding: 8px 14px;
+  padding: 8px 18px;
+  border-radius: var(--radius-full);
+  box-shadow: 0 2px 10px rgba(0, 210, 255, 0.15);
 }
 
 .btn-demo:hover:not(:disabled) {
-  background: rgba(0, 229, 255, 0.16);
-  border-color: var(--shazam-cyan);
-  box-shadow: 0 0 14px rgba(0, 229, 255, 0.25);
+  background: rgba(0, 210, 255, 0.24);
+  border-color: var(--ocean-cyan);
+  color: #ffffff;
+  box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
+  transform: translateY(-1px);
 }
 
 .btn:disabled {
@@ -169,66 +260,38 @@ h1, h2, h3, h4 {
   box-shadow: none !important;
 }
 
-/* Telemetry Badge */
-.telemetry-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
-  padding: 4px 10px;
-  border-radius: var(--radius-xs);
-  background: var(--bg-surface-elevated);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-}
-
-.telemetry-tag.active {
-  border-color: rgba(16, 185, 129, 0.4);
-  color: #34d399;
-  background: rgba(16, 185, 129, 0.08);
-}
-
-.status-beacon {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-  box-shadow: 0 0 8px currentColor;
+/* Base Layout Container */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
 }
 
 /* Animations */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
   animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Custom Scrollbars */
+/* Oceanic Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-main);
+  background: #020813;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--bg-surface-hover);
-  border-radius: 3px;
+  background: rgba(56, 189, 248, 0.25);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--shazam-cyan);
+  background: rgba(0, 210, 255, 0.5);
 }

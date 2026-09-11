@@ -46,6 +46,8 @@ public class ShazamController {
     @Autowired
     private SongRepository songRepository;
     @Autowired
+    private org.springframework.data.mongodb.core.MongoTemplate mongoTemplate;
+    @Autowired
     private org.ysn.shazam.Service.YouTubeService youTubeService;
     @Autowired
     private org.ysn.shazam.Service.IndexingLogService logService;
@@ -365,10 +367,34 @@ public class ShazamController {
     @GetMapping("/songs")
     public ResponseEntity<List<SongSummaryDTO>> getAllSongs() {
         List<Song> songs = songRepository.findAll();
-        List<SongSummaryDTO> summaries = new ArrayList<>();
+        if (songs.isEmpty()) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
 
+        // High-performance single-pass aggregation: group by songId and count hashes in RAM
+        Map<Long, Long> countsBySongId = new HashMap<>();
+        try {
+            org.springframework.data.mongodb.core.aggregation.Aggregation agg =
+                    org.springframework.data.mongodb.core.aggregation.Aggregation.newAggregation(
+                            org.springframework.data.mongodb.core.aggregation.Aggregation.group("songId").count().as("count")
+                    );
+            org.springframework.data.mongodb.core.aggregation.AggregationResults<org.bson.Document> aggResults =
+                    mongoTemplate.aggregate(agg, "fingerPrints", org.bson.Document.class);
+
+            for (org.bson.Document doc : aggResults.getMappedResults()) {
+                Object idObj = doc.get("_id");
+                Number countNum = (Number) doc.get("count");
+                if (idObj instanceof Number && countNum != null) {
+                    countsBySongId.put(((Number) idObj).longValue(), countNum.longValue());
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Aggregation fallback: {}", e.getMessage());
+        }
+
+        List<SongSummaryDTO> summaries = new ArrayList<>(songs.size());
         for (Song s : songs) {
-            long count = audioHashRepository.countBySongId(s.getId());
+            long count = countsBySongId.getOrDefault(s.getId(), 0L);
             summaries.add(new SongSummaryDTO(s.getId(), s.getName(), s.getArtist(), s.getLink(), count));
         }
 
@@ -390,8 +416,14 @@ public class ShazamController {
 
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getStats() {
-        long songCount = songRepository.count();
-        long hashCount = audioHashRepository.count();
+        // Parallel non-blocking execution across worker threads
+        java.util.concurrent.CompletableFuture<Long> songCountFuture =
+                java.util.concurrent.CompletableFuture.supplyAsync(songRepository::count);
+        java.util.concurrent.CompletableFuture<Long> hashCountFuture =
+                java.util.concurrent.CompletableFuture.supplyAsync(audioHashRepository::count);
+
+        long songCount = songCountFuture.join();
+        long hashCount = hashCountFuture.join();
 
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalSongs", songCount);

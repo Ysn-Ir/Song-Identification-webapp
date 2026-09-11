@@ -19,6 +19,7 @@ import java.util.List;
 public class AudioHashService {
 
     private final AudioHashRepository repository;
+    private final org.springframework.data.mongodb.core.MongoTemplate mongoTemplate;
 
     private final ObjectMapper objectMapper = new ObjectMapper(); // Jackson
 
@@ -35,9 +36,12 @@ public class AudioHashService {
             audioHashes.add(new AudioHash(null, entry.getHash(), songId, entry.getT1()));
         }
 
-
-        // Save updated database
-        repository.saveAll(audioHashes);
+        // High-performance bulk insert: bypasses single-document entity lifecycle overhead
+        if (!audioHashes.isEmpty()) {
+            mongoTemplate.bulkOps(org.springframework.data.mongodb.core.BulkOperations.BulkMode.UNORDERED, AudioHash.class)
+                    .insert(audioHashes)
+                    .execute();
+        }
     }
 
     public List<HashEntryDTO> parseHashJson(String hashesJson) throws Exception {

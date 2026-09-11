@@ -522,8 +522,15 @@ export default function SongRecognizer() {
             {/* MODE: MICROPHONE CAPTURE */}
             {inputMode === "mic" && (
               <div className="console-mic-deck">
-                {/* Central Audio Actuator Knob */}
+                {/* Central Ocean Pulse Actuator */}
                 <div className="actuator-station">
+                  {isListening && (
+                    <>
+                      <div className="tidal-ripple r1"></div>
+                      <div className="tidal-ripple r2"></div>
+                      <div className="tidal-ripple r3"></div>
+                    </>
+                  )}
                   <div className={`actuator-halo ${isListening ? "active" : ""}`}>
                     <button
                       type="button"
@@ -708,6 +715,43 @@ export default function SongRecognizer() {
             )}
           </>
         )}
+      </div>
+      {/* Quick Test Acoustic Benchmark Deck */}
+      <div className="demo-bench-container studio-card animate-fade-in">
+        <div className="demo-bench-header">
+          <div>
+            <div className="bench-title">Acoustic Reference Benchmarks</div>
+            <div className="bench-subtitle">Instant one-click engine validation using master reference tracks</div>
+          </div>
+          <span className="bench-badge mono">FFTW3 VERIFIED</span>
+        </div>
+        <div className="demo-bench-grid">
+          {DEMO_CLIPS.map((clip) => (
+            <div key={clip.id} className="demo-card">
+              <div className="demo-card-top">
+                <span className="demo-genre">{clip.genre}</span>
+                <span className="demo-dur mono">{clip.duration}</span>
+              </div>
+              <div className="demo-card-body">
+                <div className="demo-title" title={clip.title}>{clip.title}</div>
+                <div className="demo-artist" title={clip.artist}>{clip.artist}</div>
+              </div>
+              <div className="demo-card-actions">
+                <button
+                  type="button"
+                  className="demo-btn-identify"
+                  onClick={() => loadAndIdentifyDemoTrack(clip)}
+                  disabled={status === "analyzing" || isListening || isLoadingDemo}
+                >
+                  <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                  </svg>
+                  Identify Track
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
