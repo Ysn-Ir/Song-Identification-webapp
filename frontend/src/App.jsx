@@ -9,6 +9,15 @@ function App() {
   return (
     <Router>
       <div className="app-container">
+        {/* Fixed Scenic Alpine Mountain & Ocean Waves Backdrop */}
+        <div className="scenic-backdrop" aria-hidden="true">
+          <div className="scenic-image-layer" />
+          <div className="scenic-mist-overlay" />
+          <div className="scenic-wave-tide tide-1" />
+          <div className="scenic-wave-tide tide-2" />
+          <div className="scenic-vignette" />
+        </div>
+
         {/* Sticky Glassmorphic Navbar with Live Engine Status */}
         <Navbar />
 
