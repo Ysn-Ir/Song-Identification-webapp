@@ -35,7 +35,7 @@ export default function SongLibrary() {
   }, []);
 
   const handleDelete = async (id, name) => {
-    if (!window.confirm(`Confirm removal of "${name}" (ID #${id}) and all its acoustic hash fingerprints from MongoDB?`)) {
+    if (!window.confirm(`Are you sure you want to remove "${name}" from your music library?`)) {
       return;
     }
     setDeletingId(id);
@@ -51,7 +51,7 @@ export default function SongLibrary() {
       }
     } catch (err) {
       console.error("Deletion error:", err);
-      alert("Failed to delete track. Check server logs.");
+      alert("Failed to delete song. Check server connection.");
     } finally {
       setDeletingId(null);
     }
@@ -80,9 +80,9 @@ export default function SongLibrary() {
       {/* Studio Header */}
       <div className="catalog-header-bar">
         <div className="header-text-group">
-          <h1>Acoustic Master Catalog</h1>
+          <h1>Music Library</h1>
           <p className="catalog-lead">
-            Audited repository of reference tracks and constellation peak fingerprints indexed in MongoDB.
+            Browse and manage songs indexed in your personal music collection.
           </p>
         </div>
 
@@ -91,34 +91,42 @@ export default function SongLibrary() {
             <line x1="12" y1="5" x2="12" y2="19"/>
             <line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
-          Index Audio Master
+          Add Songs
         </Link>
       </div>
 
-      {/* Hardware Telemetry Cards */}
-      <div className="catalog-metrics-grid">
-        <div className="metric-pod studio-card">
-          <span className="pod-label mono">TOTAL AUDIO MASTERS</span>
-          <span className="pod-val mono">{stats.totalSongs}</span>
-          <span className="pod-sub mono">Indexed in cluster</span>
+      {/* Floating Library Stats Ribbon - Single Unified Glass Bar */}
+      <div className="library-stats-bar">
+        <div className="stats-bar-item">
+          <span className="stats-bar-label">TOTAL SONGS</span>
+          <span className="stats-bar-val">{stats.totalSongs}</span>
+          <span className="stats-bar-sub">in your collection</span>
         </div>
 
-        <div className="metric-pod studio-card">
-          <span className="pod-label mono">CONSTELLATION HASHES</span>
-          <span className="pod-val highlight-cyan mono">{stats.totalHashes.toLocaleString()}</span>
-          <span className="pod-sub mono">Acoustic pairs in DB</span>
+        <div className="stats-bar-divider"></div>
+
+        <div className="stats-bar-item">
+          <span className="stats-bar-label">FINGERPRINTS</span>
+          <span className="stats-bar-val highlight-cyan">{stats.totalHashes.toLocaleString()}</span>
+          <span className="stats-bar-sub">acoustic markers</span>
         </div>
 
-        <div className="metric-pod studio-card">
-          <span className="pod-label mono">AVG DENSITY / TRACK</span>
-          <span className="pod-val mono">{avgHashes.toLocaleString()}</span>
-          <span className="pod-sub mono">Hashes / Master file</span>
+        <div className="stats-bar-divider"></div>
+
+        <div className="stats-bar-item">
+          <span className="stats-bar-label">AVG. / SONG</span>
+          <span className="stats-bar-val">{avgHashes.toLocaleString()}</span>
+          <span className="stats-bar-sub">markers per track</span>
         </div>
 
-        <div className="metric-pod studio-card">
-          <span className="pod-label mono">ENGINE DAEMON</span>
-          <span className="pod-val status-online mono">ONLINE</span>
-          <span className="pod-sub mono">Spring Boot 4 / FFTW3</span>
+        <div className="stats-bar-divider"></div>
+
+        <div className="stats-bar-item">
+          <span className="stats-bar-label">RECOGNITION ENGINE</span>
+          <span className="stats-bar-val status-online">
+            <span className="online-dot"></span> Online
+          </span>
+          <span className="stats-bar-sub">Ready to identify</span>
         </div>
       </div>
 
@@ -131,10 +139,10 @@ export default function SongLibrary() {
           </svg>
           <input
             type="text"
-            placeholder="Filter catalog by title, artist, or track ID..."
+            placeholder="Search songs by title, artist, or ID..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="toolbar-search-input mono"
+            className="toolbar-search-input"
           />
           {query && (
             <button
@@ -150,40 +158,40 @@ export default function SongLibrary() {
 
       {/* Catalog Table / Grid */}
       {loading ? (
-        <div className="studio-card catalog-loading-pod">
+        <div className="catalog-loading-pod">
           <div className="hardware-spinner"></div>
-          <span className="mono">Querying MongoDB cluster...</span>
+          <span>Loading music library...</span>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="studio-card catalog-empty-pod">
+        <div className="catalog-empty-pod">
           <div className="empty-glyph">
-            <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M9 18V5l12-2v13"/>
               <circle cx="6" cy="18" r="3"/>
               <circle cx="18" cy="16" r="3"/>
             </svg>
           </div>
-          <h3>{query ? "No Matching Tracks" : "Catalog Contains No Masters"}</h3>
+          <h3>{query ? "No Matching Songs" : "Your Library is Empty"}</h3>
           <p>
             {query
-              ? `No cataloged master matches your filter criteria "${query}".`
-              : "Upload audio files to generate constellation hashes and populate the identification database."}
+              ? `No songs matched your search for "${query}".`
+              : "Upload audio files or import tracks from YouTube to start identifying music."}
           </p>
           {!query && (
             <Link to="/add" className="btn btn-primary">
-              Index Reference Tracks Now
+              Add Songs Now
             </Link>
           )}
         </div>
       ) : (
-        <div className="catalog-table-wrapper studio-card">
+        <div className="catalog-table-wrapper">
           <table className="catalog-table">
             <thead>
-              <tr className="mono">
+              <tr>
                 <th>ID</th>
-                <th>TRACK MASTER</th>
+                <th>SONG</th>
                 <th>ARTIST</th>
-                <th>CONSTELLATION HASHES</th>
+                <th>FINGERPRINTS</th>
                 <th>ACTIONS</th>
               </tr>
             </thead>
@@ -229,7 +237,7 @@ export default function SongLibrary() {
                     <td className="row-artist">{song.artist || "Unknown Artist"}</td>
                     <td className="row-hashes mono">
                       <span className="hash-metric-pill">
-                        {song.hashCount ? song.hashCount.toLocaleString() : 0} hashes
+                        {song.hashCount ? song.hashCount.toLocaleString() : 0} fingerprints
                       </span>
                     </td>
                     <td className="row-actions">
@@ -237,7 +245,7 @@ export default function SongLibrary() {
                         <Link
                           to="/"
                           className="btn-icon-link test-recog"
-                          title="Test recognize audio"
+                          title="Test recognize song"
                         >
                           <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
                             <polygon points="5 3 19 12 5 21 5 3"/>
@@ -293,12 +301,12 @@ export default function SongLibrary() {
 
                       <button
                         type="button"
-                        className="btn-delete mono"
+                        className="btn-delete"
                         onClick={() => handleDelete(song.id, song.name)}
                         disabled={deletingId === song.id}
-                        title="Delete track and fingerprints"
+                        title="Delete song from library"
                       >
-                        {deletingId === song.id ? "DELETING" : "DELETE"}
+                        {deletingId === song.id ? "Deleting..." : "Delete"}
                       </button>
                     </div>
                   </td>

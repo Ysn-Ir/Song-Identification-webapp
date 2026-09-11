@@ -13,10 +13,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "fingerPrints")
-@CompoundIndexes({
-    @CompoundIndex(name = "hash_song_t1_idx", def = "{'hash': 1, 'songId': 1, 't1': 1}"),
-    @CompoundIndex(name = "songId_idx", def = "{'songId': 1}")
-})
 public class AudioHash {
 
     @Id

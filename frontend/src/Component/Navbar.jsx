@@ -43,8 +43,8 @@ export default function Navbar() {
             </svg>
           </div>
           <div className="brand-copy">
-            <span className="brand-name">SHAZAM <span className="brand-edition">DSP</span></span>
-            <span className="brand-tagline mono">Acoustic Constellation Engine</span>
+            <span className="brand-name">SHAZAM <span className="brand-edition">STUDIO</span></span>
+            <span className="brand-tagline mono">Song Recognition</span>
           </div>
         </Link>
 
@@ -55,7 +55,7 @@ export default function Navbar() {
             className={`nav-tab ${location.pathname === "/recognize" || location.pathname === "/" ? "active" : ""}`}
           >
             <span className="tab-indicator"></span>
-            <span>Identify Audio</span>
+            <span>Recognize</span>
           </Link>
 
           <Link
@@ -63,7 +63,7 @@ export default function Navbar() {
             className={`nav-tab ${location.pathname === "/library" ? "active" : ""}`}
           >
             <span className="tab-indicator"></span>
-            <span>Acoustic Library</span>
+            <span>Library</span>
             {stats.totalSongs > 0 && (
               <span className="tab-counter mono">{stats.totalSongs}</span>
             )}
@@ -74,18 +74,18 @@ export default function Navbar() {
             className={`nav-tab ${location.pathname === "/add" ? "active" : ""}`}
           >
             <span className="tab-indicator"></span>
-            <span>Index Master</span>
+            <span>Add Songs</span>
           </Link>
         </nav>
 
-        {/* Hardware Telemetry Bar */}
+        {/* System Status Bar */}
         <div className="navbar-telemetry">
           <div className={`telemetry-tag ${engineStatus === "online" ? "active" : ""}`}>
             <span className="status-beacon"></span>
             <span className="mono">
               {engineStatus === "online" 
-                ? `FFTW3 • ${stats.totalHashes.toLocaleString()} HASHES`
-                : "DAEMON OFFLINE"}
+                ? `${stats.totalSongs} ${stats.totalSongs === 1 ? "Song" : "Songs"} Indexed`
+                : "Server Offline"}
             </span>
           </div>
         </div>

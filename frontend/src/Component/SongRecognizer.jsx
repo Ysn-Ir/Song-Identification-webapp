@@ -277,49 +277,26 @@ export default function SongRecognizer() {
   return (
     <div className="recognizer-station animate-fade-in">
       {/* Studio Header Bar */}
+      {/* Studio Header Bar */}
       <div className="station-header">
         <div className="station-title-group">
-          <h1>Acoustic Fingerprint Identifier</h1>
+          <h1>Song Identification</h1>
           <p className="station-lead">
-            Real-time spectral constellation matcher powered by C++ FFTW3 and MongoDB time-alignment scoring.
+            Play music near your microphone or upload an audio file to identify it instantly.
           </p>
         </div>
-
-        {/* Quick Demo Track Action */}
-        <button
-          type="button"
-          className="btn btn-demo"
-          onClick={() => loadAndIdentifyDemoTrack(DEMO_CLIPS[0])}
-          disabled={status === "analyzing" || isListening || isLoadingDemo}
-          title="Instantly tests the engine with the bundled reference audio (Starboy - The Weeknd)"
-        >
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-            <polygon points="5 3 19 12 5 21 5 3"/>
-          </svg>
-          {isLoadingDemo ? "Loading Demo..." : "Quick Test (Starboy)"}
-        </button>
       </div>
 
-      {/* Hardware Telemetry Bar */}
-      <div className="studio-telemetry-strip mono">
-        <div className="telemetry-cell">
-          <span className="telemetry-label">SAMPLING RATE</span>
-          <span className="telemetry-val">16,000 Hz</span>
-        </div>
-        <div className="telemetry-cell">
-          <span className="telemetry-label">WINDOWING</span>
-          <span className="telemetry-val">Hamming 2048</span>
-        </div>
-        <div className="telemetry-cell">
-          <span className="telemetry-label">PEAK TARGET ZONE</span>
-          <span className="telemetry-val">3×3 Stencil</span>
-        </div>
-        <div className="telemetry-cell">
-          <span className="telemetry-label">SIGNAL LEVEL</span>
-          <span className={`telemetry-val ${dbLevel > -12 ? "hot" : ""}`}>
-            {isListening ? `${dbLevel} dBFS` : "STANDBY"}
-          </span>
-        </div>
+      {/* Floating Status Capsule */}
+      <div className="studio-status-capsule">
+        <span className="status-dot online"></span>
+        <span className="capsule-text">{isListening ? "Listening..." : "Ready to Listen"}</span>
+        <span className="capsule-divider">•</span>
+        <span className="capsule-text">High Accuracy</span>
+        <span className="capsule-divider">•</span>
+        <span className={`signal-indicator ${dbLevel > -12 ? "hot" : ""}`}>
+          {isListening ? `${dbLevel} dB` : "Microphone Active"}
+        </span>
       </div>
 
       {/* Mode Selector Tabs */}
@@ -339,7 +316,7 @@ export default function SongRecognizer() {
             <line x1="12" y1="19" x2="12" y2="23"/>
             <line x1="8" y1="23" x2="16" y2="23"/>
           </svg>
-          Live Microphone Input
+          Microphone
         </button>
 
         <button
@@ -357,28 +334,28 @@ export default function SongRecognizer() {
             <line x1="12" y1="18" x2="12" y2="12"/>
             <line x1="9" y1="15" x2="15" y2="15"/>
           </svg>
-          Audio File / Sample Upload
+          Upload Audio File
         </button>
       </div>
 
-      {/* Main Studio Console Deck */}
-      <div className="studio-card main-deck">
+      {/* Main Studio Deck */}
+      <div className="main-deck">
         {/* =========================================================
             STATE: MATCH SUCCESS
            ========================================================= */}
         {status === "matched" && matchResult && (
-          <div className="match-dossier animate-fade-in">
+          <div className="match-dossier studio-card animate-fade-in">
             <div className="dossier-header">
               <div className="dossier-headline">
-                <span className="badge-match">ACOUSTIC MATCH CONFIRMED</span>
+                <span className="badge-match">MATCH FOUND!</span>
                 <span className="confidence-score mono">
-                  Confidence: <strong>{matchResult.confidence?.toLocaleString()}</strong> aligned peak clusters
+                  Confidence Score: <strong>{matchResult.confidence?.toLocaleString()}</strong> points
                 </span>
               </div>
             </div>
 
             <div className="dossier-body">
-              {/* Album Sleeve with Real YouTube Cover Art & Rotating Vinyl */}
+              {/* Album Sleeve with YouTube Cover Art & Rotating Vinyl */}
               <div className="dossier-media">
                 <div className="album-sleeve">
                   <div className="sleeve-art">
@@ -403,7 +380,7 @@ export default function SongRecognizer() {
 
               {/* Track Metadata */}
               <div className="dossier-meta">
-                <span className="track-id mono">CATALOG MASTER #{matchResult.id}</span>
+                <span className="track-id mono">SONG #{matchResult.id}</span>
                 <h2 className="track-title">{matchResult.name}</h2>
                 <h3 className="track-artist">{matchResult.artist || "Unknown Artist"}</h3>
 
@@ -419,7 +396,7 @@ export default function SongRecognizer() {
                       <svg viewBox="0 0 24 24" width="16" height="16" fill="#ff0000">
                         <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                       </svg>
-                      Watch on YouTube
+                      Listen on YouTube
                     </a>
                   )}
 
@@ -434,7 +411,7 @@ export default function SongRecognizer() {
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="#1db954">
                       <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
                     </svg>
-                    Spotify
+                    Listen on Spotify
                   </a>
                 </div>
               </div>
@@ -443,14 +420,14 @@ export default function SongRecognizer() {
             {/* Audio Preview if available */}
             {audioPreviewUrl && (
               <div className="dossier-audio-player">
-                <span className="audio-label mono">ACOUSTIC SAMPLE PLAYBACK</span>
+                <span className="audio-label mono">AUDIO PREVIEW</span>
                 <audio controls src={audioPreviewUrl} className="embedded-audio" />
               </div>
             )}
 
             <div className="dossier-footer">
               <button type="button" className="btn btn-primary" onClick={resetAll}>
-                Identify Another Track
+                Identify Another Song
               </button>
             </div>
           </div>
@@ -460,24 +437,28 @@ export default function SongRecognizer() {
             STATE: NO MATCH / ERROR
            ========================================================= */}
         {(status === "no_match" || status === "error") && (
-          <div className="no-match-dossier animate-fade-in">
+          <div className="no-match-dossier studio-card animate-fade-in">
             <div className="status-indicator-box">
               <span className="status-code-pill mono">
-                {status === "no_match" ? "STATUS: 404_NO_CORRELATION" : "STATUS: ENGINE_ERROR"}
+                {status === "no_match" ? "NO MATCH" : "ERROR"}
               </span>
-              <h3>{status === "no_match" ? "No Coherent Acoustic Match" : "Processing Fault"}</h3>
-              <p className="status-explanation">{errorMessage}</p>
+              <h3>{status === "no_match" ? "No Matching Song Found" : "Unable to Identify Audio"}</h3>
+              <p className="status-explanation">
+                {status === "no_match"
+                  ? "We couldn't match this audio in your music library. Make sure the song is playing clearly, or try testing with one of the sample tracks below."
+                  : errorMessage}
+              </p>
 
               <div className="status-button-row">
                 <button type="button" className="btn btn-primary" onClick={resetAll}>
-                  Reset & Try Again
+                  Try Again
                 </button>
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  onClick={loadAndIdentifyDemoTrack}
+                  onClick={() => loadAndIdentifyDemoTrack(DEMO_CLIPS[0])}
                 >
-                  Run Bundled Demo Sample
+                  Try Sample Track (Starboy)
                 </button>
               </div>
             </div>
@@ -488,27 +469,27 @@ export default function SongRecognizer() {
             STATE: ANALYZING AUDIO
            ========================================================= */}
         {status === "analyzing" && (
-          <div className="analyzing-console animate-fade-in">
+          <div className="analyzing-console studio-card animate-fade-in">
             <div className="radar-station">
               <div className="radar-sweep-ring r1"></div>
               <div className="radar-sweep-ring r2"></div>
               <div className="radar-core-hub">
-                <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#00e5ff" strokeWidth="2">
+                <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#00d2ff" strokeWidth="2">
                   <path d="M12 2v20M17 5v14M7 8v8M22 10v4M2 11v2" />
                 </svg>
               </div>
             </div>
 
             <div className="analyzing-telemetry">
-              <h3>Processing Audio Constellation...</h3>
+              <h3>Searching Library...</h3>
               <p className="analyzing-description">
-                Executing 1D real-to-complex FFT with Hamming windowing, extracting local spectrogram maxima, and cross-matching hash offsets against MongoDB collection.
+                Analyzing audio frequencies and searching your library collection for a match.
               </p>
               <div className="analyzing-steps mono">
-                <span>[1] Audio Resample 16kHz</span>
-                <span>[2] Fast Fourier Transform</span>
-                <span>[3] Peak Anchoring</span>
-                <span>[4] Constellation Delta Match</span>
+                <span>[1] Audio Resample</span>
+                <span>[2] Frequency Spectrogram</span>
+                <span>[3] Peak Constellation</span>
+                <span>[4] Database Match</span>
               </div>
             </div>
           </div>
@@ -560,14 +541,14 @@ export default function SongRecognizer() {
                         <span className="mono">LISTENING [{formatTimer(listenSeconds)} / 00:15]</span>
                       </div>
                       <p className="listening-prompt">
-                        Capturing ambient audio signal. Click the center control when ready to identify.
+                        Listening to audio... Tap the center button when ready to identify.
                       </p>
                     </div>
                   ) : (
                     <div className="idle-banner">
-                      <h2>Click Center Console to Identify</h2>
+                      <h2>Tap to Listen</h2>
                       <p className="idle-prompt">
-                        Auto-normalized 16kHz PCM with AGC enabled. Play 5–8 seconds of any cataloged song near your mic.
+                        Play 5 to 10 seconds of any song near your microphone to find a match.
                       </p>
                     </div>
                   )}
@@ -577,7 +558,7 @@ export default function SongRecognizer() {
                 <div className={`studio-monitor-deck ${isListening ? "active" : "inactive"}`}>
                   <div className="monitor-top-bar">
                     <span className="monitor-label mono">
-                      {visualizerMode === "spectrum" ? "REAL-TIME FFT SPECTRUM" : "TIME-DOMAIN OSCILLOSCOPE"}
+                      {visualizerMode === "spectrum" ? "REAL-TIME SPECTRUM" : "AUDIO WAVEFORM"}
                     </span>
                     <div className="monitor-controls">
                       <button
@@ -585,14 +566,14 @@ export default function SongRecognizer() {
                         className={`monitor-btn ${visualizerMode === "spectrum" ? "active" : ""}`}
                         onClick={() => toggleVisualizerMode("spectrum")}
                       >
-                        FFT
+                        Spectrum
                       </button>
                       <button
                         type="button"
                         className={`monitor-btn ${visualizerMode === "oscilloscope" ? "active" : ""}`}
                         onClick={() => toggleVisualizerMode("oscilloscope")}
                       >
-                        OSC
+                        Waveform
                       </button>
                     </div>
                   </div>
@@ -642,10 +623,10 @@ export default function SongRecognizer() {
                     </div>
                     <div className="dropzone-text-block">
                       <span className="dropzone-primary-text">
-                        {selectedFile ? selectedFile.name : "Select or Drop Master Audio File"}
+                        {selectedFile ? selectedFile.name : "Drop an audio file here, or click to browse"}
                       </span>
-                      <span className="dropzone-secondary-text mono">
-                        WAV, MP3, FLAC, OGG supported • Audio downmixed & resampled to 16kHz mono
+                      <span className="dropzone-secondary-text">
+                        Supports MP3, WAV, FLAC, and OGG audio files
                       </span>
                     </div>
                   </label>
@@ -678,7 +659,7 @@ export default function SongRecognizer() {
                       <div className="spec-item">
                         <span className="spec-label mono">FORMAT</span>
                         <span className="spec-value mono">
-                          {selectedFile.type || "audio/x-raw"}
+                          {selectedFile.type || "audio/wav"}
                         </span>
                       </div>
                     </div>
@@ -695,7 +676,7 @@ export default function SongRecognizer() {
                         className="btn btn-primary submit-identification-btn"
                         onClick={() => submitAudioForIdentification(selectedFile)}
                       >
-                        Execute Acoustic Identification
+                        Identify Song
                       </button>
                       <button
                         type="button"
@@ -706,7 +687,7 @@ export default function SongRecognizer() {
                           setAudioPreviewUrl(null);
                         }}
                       >
-                        Eject File
+                        Remove File
                       </button>
                     </div>
                   </div>
@@ -716,40 +697,32 @@ export default function SongRecognizer() {
           </>
         )}
       </div>
-      {/* Quick Test Acoustic Benchmark Deck */}
-      <div className="demo-bench-container studio-card animate-fade-in">
-        <div className="demo-bench-header">
-          <div>
-            <div className="bench-title">Acoustic Reference Benchmarks</div>
-            <div className="bench-subtitle">Instant one-click engine validation using master reference tracks</div>
-          </div>
-          <span className="bench-badge mono">FFTW3 VERIFIED</span>
+
+      {/* Sample Songs Shelf - Floating Organic Glass Pills */}
+      <div className="demo-shelf animate-fade-in">
+        <div className="demo-shelf-header">
+          <span className="demo-shelf-title">Or test with a sample track:</span>
         </div>
-        <div className="demo-bench-grid">
+        <div className="demo-pill-track">
           {DEMO_CLIPS.map((clip) => (
-            <div key={clip.id} className="demo-card">
-              <div className="demo-card-top">
-                <span className="demo-genre">{clip.genre}</span>
-                <span className="demo-dur mono">{clip.duration}</span>
-              </div>
-              <div className="demo-card-body">
-                <div className="demo-title" title={clip.title}>{clip.title}</div>
-                <div className="demo-artist" title={clip.artist}>{clip.artist}</div>
-              </div>
-              <div className="demo-card-actions">
-                <button
-                  type="button"
-                  className="demo-btn-identify"
-                  onClick={() => loadAndIdentifyDemoTrack(clip)}
-                  disabled={status === "analyzing" || isListening || isLoadingDemo}
-                >
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
-                    <polygon points="5 3 19 12 5 21 5 3"/>
-                  </svg>
-                  Identify Track
-                </button>
-              </div>
-            </div>
+            <button
+              key={clip.id}
+              type="button"
+              className="demo-pill-btn"
+              onClick={() => loadAndIdentifyDemoTrack(clip)}
+              disabled={status === "analyzing" || isListening || isLoadingDemo}
+              title={`Test identification with "${clip.title}"`}
+            >
+              <span className="demo-pill-play">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+                  <polygon points="6 4 20 12 6 20 6 4" />
+                </svg>
+              </span>
+              <span className="demo-pill-info">
+                <span className="demo-pill-title">{clip.title}</span>
+                <span className="demo-pill-artist">{clip.artist}</span>
+              </span>
+            </button>
           ))}
         </div>
       </div>

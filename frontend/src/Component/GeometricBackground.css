@@ -1,0 +1,34 @@
+/* GeometricBackground.css - Ultra-Elegant Dynamic Geometric Canvas */
+
+.geometric-ambient-canvas-wrapper {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background-color: #020611;
+}
+
+.geometric-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Subtle Cinematic Edge Vignette to frame content elegantly */
+.geometric-ambient-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 45%,
+    rgba(1, 4, 10, 0.45) 80%,
+    rgba(1, 4, 10, 0.85) 100%
+  );
+  pointer-events: none;
+}

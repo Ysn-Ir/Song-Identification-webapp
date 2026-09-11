@@ -22,9 +22,9 @@ export default function FileUploader() {
   const [resolvingLink, setResolvingLink] = useState(false);
   const [resolvedInfo, setResolvedInfo] = useState(null);
 
-  // Live SSE Telemetry Logs
+  // Live SSE Activity Logs
   const [logs, setLogs] = useState([
-    { time: "--:--:--", level: "SYSTEM", message: "Awaiting audio ingestion input..." }
+    { time: "--:--:--", level: "SYSTEM", message: "Ready. Add audio files or links above to begin." }
   ]);
   const [showTerminal, setShowTerminal] = useState(true);
   const terminalEndRef = useRef(null);
@@ -265,9 +265,9 @@ export default function FileUploader() {
   return (
     <div className="indexer-station animate-fade-in">
       <div className="indexer-header">
-        <h1>Acoustic Ingestion Console</h1>
+        <h1>Add Songs to Library</h1>
         <p className="indexer-lead">
-          Catalog audio tracks into the fingerprint database via local file uploads or direct streaming downloads.
+          Upload audio files from your device or import tracks from YouTube and Spotify to expand your music collection.
         </p>
       </div>
 
@@ -289,7 +289,7 @@ export default function FileUploader() {
             <line x1="12" y1="18" x2="12" y2="12"/>
             <line x1="9" y1="15" x2="15" y2="15"/>
           </svg>
-          Local Audio Files (WAV / MP3)
+          Upload Audio Files (MP3 / WAV)
         </button>
 
         <button
@@ -317,10 +317,10 @@ export default function FileUploader() {
       {/* SUCCESS STATE */}
       {indexingStatus === "success" && (
         <div className="studio-card indexer-success-pod animate-fade-in">
-          <div className="success-badge-top mono">STATUS: 200_INDEXING_SUCCESS</div>
-          <h2>{indexedResults.length} Tracks Cataloged Successfully</h2>
+          <div className="success-badge-top mono">STATUS: SUCCESS</div>
+          <h2>{indexedResults.length} Songs Added Successfully</h2>
           <p className="success-meta">
-            Acoustic constellations have been extracted via C++ FFTW3 and stored in MongoDB.
+            Your audio tracks have been analyzed and added to the library database.
           </p>
 
           <div className="indexed-master-list">
@@ -346,7 +346,7 @@ export default function FileUploader() {
                   </div>
                 </div>
                 <span className="master-hashes mono">
-                  {s.hashCount?.toLocaleString()} hashes stored
+                  {s.hashCount?.toLocaleString()} fingerprints
                 </span>
               </div>
             ))}
@@ -354,10 +354,10 @@ export default function FileUploader() {
 
           <div className="success-action-row">
             <Link to="/library" className="btn btn-primary">
-              View in Master Library
+              View in Music Library
             </Link>
             <button type="button" className="btn btn-secondary" onClick={resetStaging}>
-              Index More Tracks
+              Add More Songs
             </button>
           </div>
         </div>
@@ -365,7 +365,7 @@ export default function FileUploader() {
 
       {/* STAGING PANEL */}
       {indexingStatus !== "success" && (
-        <div className="studio-card indexer-staging-card">
+        <div className="indexer-staging-card animate-fade-in">
           {/* Error Message */}
           {indexingStatus === "error" && (
             <div className="indexer-error-box mono">
@@ -388,16 +388,18 @@ export default function FileUploader() {
               >
                 <label htmlFor="batch-audio-input" className="staging-dropzone-label">
                   <div className="staging-dropzone-icon">
-                    <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                       <polyline points="17 8 12 3 7 8"/>
                       <line x1="12" y1="3" x2="12" y2="15"/>
                     </svg>
                   </div>
-                  <span className="staging-title">Select Master Audio Files to Index</span>
-                  <span className="staging-subtitle mono">
-                    WAV, MP3, FLAC, OGG • Drag & drop multiple files to batch process
-                  </span>
+                  <div className="staging-dropzone-text">
+                    <span className="staging-title">Drop audio files here, or click to browse</span>
+                    <span className="staging-subtitle">
+                      Supports MP3, WAV, FLAC, and OGG • Select multiple files to add at once
+                    </span>
+                  </div>
                 </label>
                 <input
                   id="batch-audio-input"
@@ -414,14 +416,14 @@ export default function FileUploader() {
               {stagedFiles.length > 0 && (
                 <div className="staging-queue-section">
                   <div className="staging-queue-header">
-                    <span className="queue-count mono">STAGED AUDIO FILES ({stagedFiles.length})</span>
+                    <span className="queue-count mono">SELECTED SONGS ({stagedFiles.length})</span>
                     <button
                       type="button"
                       className="queue-clear-btn mono"
                       onClick={() => setStagedFiles([])}
                       disabled={indexingStatus === "uploading" || indexingStatus === "processing"}
                     >
-                      CLEAR QUEUE
+                      CLEAR ALL
                     </button>
                   </div>
 
@@ -445,7 +447,7 @@ export default function FileUploader() {
 
                         <div className="track-row-inputs">
                           <div className="meta-field">
-                            <label className="mono">TRACK TITLE</label>
+                            <label className="mono">SONG TITLE</label>
                             <input
                               type="text"
                               value={item.title}
@@ -456,7 +458,7 @@ export default function FileUploader() {
                           </div>
 
                           <div className="meta-field">
-                            <label className="mono">ARTIST / ENSEMBLE</label>
+                            <label className="mono">ARTIST</label>
                             <input
                               type="text"
                               value={item.artist}
@@ -467,7 +469,7 @@ export default function FileUploader() {
                           </div>
 
                           <div className="meta-field">
-                            <label className="mono">STREAM / SOURCE URL (OPTIONAL)</label>
+                            <label className="mono">SOURCE LINK (OPTIONAL)</label>
                             <input
                               type="text"
                               value={item.link}
@@ -487,7 +489,7 @@ export default function FileUploader() {
                         <div className="progress-meter-fill" style={{ width: `${uploadPercent}%` }}></div>
                       </div>
                       <span className="progress-label mono">
-                        UPLOADING AUDIO BUFFER • {uploadPercent}%
+                        UPLOADING AUDIO • {uploadPercent}%
                       </span>
                     </div>
                   )}
@@ -499,7 +501,7 @@ export default function FileUploader() {
                         className="btn btn-primary start-indexing-btn"
                         onClick={executeBatchIndex}
                       >
-                        Execute Constellation Indexing ({stagedFiles.length} {stagedFiles.length === 1 ? "track" : "tracks"})
+                        Add {stagedFiles.length} {stagedFiles.length === 1 ? "Song" : "Songs"} to Library
                       </button>
                     </div>
                   )}
@@ -524,28 +526,28 @@ export default function FileUploader() {
                   </div>
                 </div>
                 <p>
-                  Paste individual tracks, complete YouTube playlists, or Spotify playlists and albums.
-                  Streams are automatically downloaded, transcoded to 16kHz mono WAV, and indexed into the database.
+                  Paste individual songs, full YouTube playlists, or Spotify albums and playlists.
+                  Tracks are automatically downloaded, analyzed, and added to your library.
                 </p>
               </div>
 
               <div className="youtube-form-group">
                 <div className="form-label-row">
-                  <label className="mono">YOUTUBE & SPOTIFY URLS OR PLAYLISTS (ONE PER LINE)</label>
+                  <label className="mono">YOUTUBE OR SPOTIFY LINKS (ONE PER LINE)</label>
                   <button
                     type="button"
                     className="btn-resolve-link mono"
                     onClick={handleResolveLinks}
                     disabled={resolvingLink || indexingStatus === "processing"}
-                    title="Inspect and resolve full playlist or Spotify tracklist into individual query rows"
+                    title="Inspect and expand playlist links into individual tracks"
                   >
-                    {resolvingLink ? "INSPECTING STREAM..." : "⚡ RESOLVE & EXPAND PLAYLIST / SPOTIFY"}
+                    {resolvingLink ? "INSPECTING..." : "⚡ Resolve & Expand Playlists"}
                   </button>
                 </div>
                 <textarea
                   className="youtube-textarea mono"
                   rows={6}
-                  placeholder={`# Paste single songs, full YouTube playlists, or Spotify albums/playlists:\nhttps://www.youtube.com/watch?v=sVx1mJDeUjY # Mr.Kitty - After Dark\nhttps://www.youtube.com/playlist?list=PLrAlGoj0wZVhFvQG_B3f52l22X_Q59X3u\nhttps://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M`}
+                  placeholder={`# Paste song links, YouTube playlists, or Spotify albums/playlists:\nhttps://www.youtube.com/watch?v=sVx1mJDeUjY\nhttps://www.youtube.com/playlist?list=PLrAlGoj0wZVhFvQG_B3f52l22X_Q59X3u\nhttps://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M`}
                   value={youtubeUrlsText}
                   onChange={(e) => setYoutubeUrlsText(e.target.value)}
                   disabled={indexingStatus === "processing"}
@@ -565,18 +567,18 @@ export default function FileUploader() {
               <div className="playlist-guide-banner">
                 <div className="guide-icon mono">ℹ</div>
                 <div className="guide-content">
-                  <div className="guide-title mono">YOUTUBE & SPOTIFY INGESTION PROTOCOL</div>
+                  <div className="guide-title mono">IMPORTING PLAYLISTS & SPOTIFY TRACKS</div>
                   <p className="guide-desc">
-                    <strong>YouTube Playlists:</strong> Paste any playlist URL (<code>playlist?list=...</code>). Set <strong>MAX TRACKS</strong> below to limit sequential processing depth.
+                    <strong>YouTube Playlists:</strong> Paste any playlist URL. Set <strong>MAX TRACKS</strong> below to limit sequential processing depth.
                     <br />
-                    <strong>Spotify Playlists & Albums:</strong> Spotify streams utilize Widevine DRM encryption. Our automated bridge resolves authentic track metadata from Spotify and maps each song to verified high-fidelity audio streams for fingerprinting.
+                    <strong>Spotify Albums & Playlists:</strong> Our engine reads track metadata from Spotify and maps each song to verified high-fidelity streams for your library.
                   </p>
                 </div>
               </div>
 
               <div className="importer-controls-row">
                 <div className="limit-control">
-                  <label className="mono">MAX TRACKS:</label>
+                  <label className="mono">MAX SONGS TO IMPORT:</label>
                   <input
                     type="number"
                     min="1"
@@ -607,52 +609,52 @@ export default function FileUploader() {
                   className="btn btn-primary start-indexing-btn"
                   onClick={() => executeYouTubeIndex()}
                 >
-                  ⚡ Download, Transcode & Index from YouTube / Spotify
+                  ⚡ Download & Add to Library
                 </button>
               )}
             </div>
           )}
-
-          {/* =========================================================
-              LIVE SSE TELEMETRY & INDEXING TERMINAL
-             ========================================================= */}
-          <div className="indexing-terminal-container">
-            <div className="terminal-header">
-              <div className="terminal-dots">
-                <span></span><span></span><span></span>
-              </div>
-              <span className="terminal-title mono">INDEXING TELEMETRY STREAM</span>
-              <div className="terminal-actions">
-                <span className="stream-live-indicator mono">
-                  <span className="pulse-dot"></span> STREAM LIVE
-                </span>
-                <button
-                  type="button"
-                  className="terminal-toggle-btn mono"
-                  onClick={() => setShowTerminal(!showTerminal)}
-                >
-                  {showTerminal ? "COLLAPSE" : "EXPAND"}
-                </button>
-              </div>
-            </div>
-
-            {showTerminal && (
-              <div className="terminal-body mono">
-                {logs.map((item, i) => (
-                  <div key={i} className="terminal-line">
-                    <span className="log-time">{item.time}</span>
-                    <span className={`log-tag ${getLogTagClass(item.level)}`}>
-                      [{item.level}]
-                    </span>
-                    <span className="log-msg">{item.message}</span>
-                  </div>
-                ))}
-                <div ref={terminalEndRef} />
-              </div>
-            )}
-          </div>
         </div>
       )}
+
+      {/* =========================================================
+          LIVE SSE ACTIVITY LOG & TERMINAL DOCK
+         ========================================================= */}
+      <div className="indexing-terminal-container animate-fade-in">
+        <div className="terminal-header">
+          <div className="terminal-dots">
+            <span></span><span></span><span></span>
+          </div>
+          <span className="terminal-title">ACTIVITY LOG</span>
+          <div className="terminal-actions">
+            <span className="stream-live-indicator">
+              <span className="pulse-dot"></span> LIVE
+            </span>
+            <button
+              type="button"
+              className="terminal-toggle-btn"
+              onClick={() => setShowTerminal(!showTerminal)}
+            >
+              {showTerminal ? "HIDE LOG" : "SHOW LOG"}
+            </button>
+          </div>
+        </div>
+
+        {showTerminal && (
+          <div className="terminal-body mono">
+            {logs.map((item, i) => (
+              <div key={i} className="terminal-line">
+                <span className="log-time">{item.time}</span>
+                <span className={`log-tag ${getLogTagClass(item.level)}`}>
+                  [{item.level}]
+                </span>
+                <span className="log-msg">{item.message}</span>
+              </div>
+            ))}
+            <div ref={terminalEndRef} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
